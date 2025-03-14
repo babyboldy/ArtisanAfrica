@@ -1,0 +1,267 @@
+<!-- products.html -->
+
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+
+{% block title %}E-Shop - Produits{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard/products.css' %}">
+
+<div class="content-wrapper">
+    <!-- En-tête -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Produits</h1>
+            <p class="text-muted">Gérez votre catalogue de produits</p>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" id="addProductBtn">
+                <i class="fas fa-plus"></i> Ajouter un produit
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Barre d'outils -->
+    <div class="toolbar">
+        <form id="filterForm" method="GET" action="{% url 'admin_products' %}">
+            <div class="toolbar-left"> 
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Rechercher un produit..." value="{{ search_query }}">
+                </div>
+        
+                <div class="filter-group">
+                    <select name="category" class="filter-select">
+                        <option value="">Toutes les catégories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+        
+                    <select name="status" class="filter-select">
+                        <option value="">Tous les statuts</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            
+        </form>
+        <div class="toolbar-right">
+            <p style="font-weight: bold;">{{ products_count }} Produit(s)</p>
+        </div>
+
+        <!-- <div class="toolbar-right">
+            <button class="btn btn-outline" id="exportBtn">
+                <i class="fas fa-download"></i>
+                Exporter
+            </button>
+            <div class="view-options">
+                <button class="view-btn active" data-view="grid">
+                    <i class="fas fa-th"></i>
+                </button>
+                <button class="view-btn" data-view="list">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div> -->
+    </div>
+
+    <!-- Grille des produits -->
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <div class="product-image">
+                {% if product.media.first %}
+                <img src="{{ product.media.first.file.url }}" alt="{{ product.name }}">
+                {% endif %}
+                {% if product.stock <= 0 %} <span class="product-badge badge-out-of-stock">Rupture de stock</span>
+                    {% elif product.stock <= 10 %} <span class="product-badge badge-low-stock">Stock faible</span>
+                        {% endif %}
+                        <div class="product-actions">
+                            <button class="action-btn edit-product"
+        data-id="{{ product.id }}"
+        data-name="{{ product.name }}"
+        data-description="{{ product.description }}"
+        data-price="{{ product.price }}"
+        data-stock="{{ product.stock }}"
+        data-category="{{ product.category.id }}"
+        data-status="{{ product.status }}"
+        data-featured="{{ product.featured|lower }}"
+        data-barcode="{{ product.barcode|default:'' }}"
+        data-sku="{{ product.sku|default:'' }}"
+        data-weight="{{ product.weight|default:'' }}"
+        data-media="{% for media in product.media.all %}{{ media.id }}:{{ media.file.url }}{% if not forloop.last %},{% endif %}{% endfor %}">
+    <i class="fas fa-edit"></i>
+</button>
+                            <button class="action-btn delete-product" data-id="{{ product.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+            </div>
+            <div class="product-info">
+                <h3>{{ product.name }}</h3>
+                <div class="product-category">{{ product.category.name }}</div>
+                <div class="product-price">{{ product.price }} €</div>
+                <div class="product-stock">Stock: {{ product.stock }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Aucun produit trouvé.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Ajout/Modification Produit -->
+<div class="modal" id="productModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Ajouter un produit</h2>
+            <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+            <form method="post" action="{% url 'add_product' %}" enctype="multipart/form-data" id="productForm">
+                {% csrf_token %}
+                <input type="hidden" id="productId" name="product_id">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="productName">Nom</label>
+                        <input type="text" id="productName" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productCategory">Catégorie</label>
+                        <select id="productCategory" name="category" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productPrice">Prix</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">€</span>
+                            <input type="number" id="productPrice" name="price" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productStock">Stock</label>
+                        <input type="number" id="productStock" name="stock" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productSku">SKU</label>
+                        <input type="text" id="productSku" name="sku">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productBarcode">Code-barres</label>
+                        <input type="text" id="productBarcode" name="barcode">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productWeight">Poids (kg)</label>
+                        <input type="number" id="productWeight" name="weight" step="0.01">
+                    </div>
+
+
+                    <div class="form-group full-width">
+                        <label for="productDescription">Description</label>
+                        <textarea id="productDescription" name="description"></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Images du produit</label>
+                        <div class="image-upload-container">
+                            <div class="image-upload">
+                                <input type="file" accept="image/*" multiple name="product_images[]" id="productMedia"
+                                    class="product-images-input">
+                                <div class="upload-placeholder">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Glissez vos images ici ou cliquez pour sélectionner</p>
+                                    <span>PNG, JPG (max. 800x800px)</span>
+                                </div>
+                            </div>
+                            <div id="imagePreview" class="image-preview">
+                                {% if product and product.media.all %}
+                                {% for media in product.media.all %}
+                                <div class="preview-item">
+                                    <img src="{{ media.file.url }}" alt="Preview">
+                                    <button type="button" class="remove-image" data-media-id="{{ media.id }}">×</button>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productStatus">Statut</label>
+                        <select id="productStatus" name="status">
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="productFeatured" name="featured">
+                            Mettre en avant
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline close-modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Suppression Produit -->
+<div class="modal" id="deleteProductModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Confirmer la suppression</h2>
+            <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+            <p>Voulez-vous vraiment supprimer ce produit ?</p>
+        </div>
+        <div class="modal-footer">
+            <form method="POST" action="{% url 'delete_product' %}" id="deleteProductForm">
+                {% csrf_token %}
+                <input type="hidden" id="deleteProductId" name="product_id">
+                <button type="button" class="btn btn-outline close-modal">Annuler</button>
+                <button type="submit" class="btn btn-danger">Supprimer</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/dashboard/products.js' %}"></script>
+{% endblock %}

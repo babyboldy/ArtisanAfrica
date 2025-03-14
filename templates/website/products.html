@@ -1,0 +1,240 @@
+<!-- products.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Produits{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/website/styles.css' %}">
+<link rel="stylesheet" href="{% static 'css/website/products.css' %}">
+
+<main class="products-page">
+    <!-- Bannière -->
+    <section class="products-banner">
+        <div class="banner-content">
+            <h1>Découvrez Nos Produits</h1>
+            <div class="search-bar">
+                <input type="text" placeholder="Rechercher un produit..." id="searchInput"
+                    aria-label="Rechercher un produit">
+                <button type="button" aria-label="Lancer la recherche">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="products-container">
+        <!-- Filtres latéraux -->
+        <aside class="filters-sidebar">
+            <div class="filter-section">
+                <h3>Catégories</h3>
+                <div class="filter-options">
+                    {% for category in categories %}
+                    <label>
+                        <input type="checkbox" value="{{ category.name|lower }}" data-type="category" checked>
+                        <i class="fas {{ category.icon }}" style="color: {{ category.color }}"></i>
+                        {{ category.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Prix</h3>
+                <div class="price-range">
+                    <input type="range" min="0" max="1000" value="1000" class="price-slider"
+                        aria-label="Filtre de prix">
+                    <div class="price-inputs">
+                        <input type="number" placeholder="Min" class="price-min" aria-label="Prix minimum">
+                        <span>-</span>
+                        <input type="number" placeholder="Max" class="price-max" aria-label="Prix maximum">
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Disponibilité</h3>
+                <div class="filter-options">
+                    <label>
+                        <input type="checkbox" value="in-stock" data-type="stock" checked>
+                        <i class="fas fa-check"></i>
+                        En stock
+                    </label>
+                    <label>
+                        <input type="checkbox" value="out-of-stock" data-type="stock" checked>
+                        <i class="fas fa-times"></i>
+                        Rupture de stock
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" class="reset-filters">
+                <i class="fas fa-undo"></i>
+                Réinitialiser les filtres
+            </button>
+        </aside>
+
+        <!-- Section des produits -->
+        <section class="products-grid-section">
+            <div class="products-header">
+                <div class="products-count">
+                    {{ total_products }} produit{{ total_products|pluralize }}
+                    {% if products.paginator.num_pages > 1 %}
+                    (Page {{ products.number }} sur {{ products.paginator.num_pages }})
+                    {% endif %}
+                </div>
+                <div class="sort-options">
+                    <label for="sortSelect">Trier par:</label>
+                    <select id="sortSelect" aria-label="Options de tri">
+                        <option value="popularity">Popularité</option>
+                        <option value="price-asc">Prix croissant</option>
+                        <option value="price-desc">Prix décroissant</option>
+                        <option value="newest">Plus récents</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="products-grid">
+                {% for product in products %}
+                <article class="product-card" data-category="{{ product.category.name|lower }}"
+                    data-price="{{ product.price }}" data-stock="{{ product.stock }}"
+                    data-date="{{ product.created_at|date:'Y-m-d' }}">
+                    <a href="{% url 'product_detail' product.id %}" class="product-link">
+                        <div class="product-image">
+                            {% if product.media.exists %}
+                            <img src="{{ product.media.first.file.url }}" alt="{{ product.name }}" loading="lazy">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="Image non disponible" loading="lazy">
+                            {% endif %}
+
+                            {% if product.featured %}
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i> Produit vedette
+                            </div>
+                            {% endif %}
+
+                            <div class="product-overlay">
+                                <span class="view-details">
+                                    <i class="fas fa-eye"></i> Voir détails
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <!-- <div class="product-category">
+                                <i class="fas {{ product.category.icon }}" style="color: {{ product.category.color }}"></i>
+                                {{ product.category.name }}
+                            </div> -->
+                            <h3>{{ product.name }}</h3>
+                            <!-- <p class="product-description">{{ product.description|truncatechars:100 }}</p> -->
+                            <div class="product-details">
+                                <p class="product-price">
+                                    {{ product.price }} €
+                                    {% if product.old_price %}
+                                    <span class="old-price">{{ product.old_price }} €</span>
+                                    {% endif %}
+                                </p>
+                                <div class="product-stock {% if product.stock == 0 %}out-of-stock{% endif %}">
+                                    {% if product.stock > 0 %}
+                                    <i class="fas fa-check"></i> En stock
+                                    {% else %}
+                                    <i class="fas fa-times"></i> Rupture de stock
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    {% if product.stock > 0 %}
+                    <button type="button" onclick="addToCart(
+                {{ product.id }}, 
+                '{{ product.name|escapejs }}', 
+                {{ product.price }}, 
+                '{% if product.media.exists %}{{ product.media.first.file.url }}{% else %}{% static 'images/placeholder.jpg' %}{% endif %}',
+                {{ product.stock }}
+            )" class="add-to-cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Ajouter au panier
+                    </button>
+                    {% else %}
+                    <button type="button" class="notify-stock-btn" data-product-id="{{ product.id }}">
+                        <i class="fas fa-bell"></i>
+                        Alerter disponibilité
+                    </button>
+                    {% endif %}
+                </article>
+                {% empty %}
+                <div class="no-products-found">
+                    <i class="fas fa-box-open"></i>
+                    <h3>Aucun produit trouvé</h3>
+                    <p>Essayez de modifier vos filtres ou votre recherche</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if products.has_other_pages %}
+            <nav class="pagination" aria-label="Navigation des pages">
+                {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}" class="page-btn prev" aria-label="Page précédente">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                {% if num == products.number %}
+                <button class="page-btn active" aria-current="page">
+                    {{ num }}
+                </button>
+                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %} <a href="?page={{ num }}"
+                    class="page-btn" aria-label="Page {{ num }}">
+                    {{ num }}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}" class="page-btn next" aria-label="Page suivante">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
+            </nav>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Modal pour alerter la disponibilité -->
+    <div id="stockAlertModal" class="modal" role="dialog" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <button type="button" class="close" aria-label="Fermer">&times;</button>
+            <h2 id="modalTitle">
+                <i class="fas fa-bell"></i>
+                Alerter de la disponibilité
+            </h2>
+            <p>Recevez une notification dès que ce produit sera de nouveau disponible.</p>
+            <form id="stockAlertForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Votre email" required
+                        aria-label="Votre adresse email">
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-bell"></i>
+                    Confirmer
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification toast -->
+    <div id="notification" class="notification" role="alert" aria-live="polite">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-message"></span>
+        <button type="button" class="close-notification" aria-label="Fermer la notification">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</main>
+
+<script src="{% static 'js/website/products.js' %}"></script>
+
+{% endblock %}

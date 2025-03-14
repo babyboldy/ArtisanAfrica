@@ -1,0 +1,133 @@
+<!-- base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Shop{% endblock %}</title>
+
+    <!-- Styles principaux -->
+    <link rel="stylesheet" href="{% static 'css/website/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- {% block extra_css %}{% endblock %} -->
+</head>
+
+<body>
+
+    <header class="header">
+        <nav class="nav-container">
+            <a href="{% url 'home' %}" class="logo">E-Shop</a>
+    
+            <div class="burger-menu">
+                <div class="burger-line"></div>
+                <div class="burger-line"></div>
+                <div class="burger-line"></div>
+            </div>
+    
+            <ul class="nav-links" id="nav-links">
+                <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a></li>
+                <li><a href="{% url 'products' %}"
+                        class="{% if request.path == '/products/' %}active{% endif %}">Produits</a></li>
+                <li><a href="{% url 'contact' %}"
+                        class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a></li>
+    
+                <!-- Icône du panier -->
+                <li class="cart-icon">
+                    <a href="{% url 'cart' %}" class="{% if request.path == '/cart/' %}active{% endif %}">
+                        <i class="fas fa-shopping-cart"></i>
+                    </a>
+                    <span class="cart-count">0</span>
+                </li>
+    
+                <!-- Menu utilisateur -->
+                <li class="user-menu">
+                    <a href="#">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <ul class="dropdown-menu" id="user-dropdown">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'client_profile' %}">Profil</a></li>
+                        <li><a href="{% url 'logout' %}">Déconnexion</a></li>
+                        {% else %}
+                        <li><a href="{% url 'login' %}">Connexion</a></li>
+                        <li><a href="{% url 'register' %}">Inscription</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenu principal -->
+    {% block content %}{% endblock %}
+
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>À propos</h3>
+                <p>E-Shop est votre destination shopping en ligne.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Liens rapides</h3>
+                <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a>
+                <a href="{% url 'products' %}"
+                    class="{% if request.path == '/products/' %}active{% endif %}">Produits</a>
+                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>Email: contact@eshop.com</p>
+                <p>Téléphone: +33 1 23 45 67 89</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Suivez-nous</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/website/script.js' %}"></script>
+
+    <!-- {% block extra_js %}{% endblock %} -->
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("nav-links").classList.toggle("active");
+        }
+
+        function toggleUserMenu() {
+            document.getElementById("user-dropdown").classList.toggle("show");
+        }
+
+        // Ferme le menu si on clique en dehors
+        window.onclick = function (event) {
+            if (!event.target.matches('.user-menu a')) {
+                let dropdowns = document.getElementsByClassName("dropdown-menu");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    let openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        };
+
+    </script>
+
+</body>
+
+</html>

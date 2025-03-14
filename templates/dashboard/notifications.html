@@ -1,0 +1,157 @@
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Notifications{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard/notifications.css' %}">
+
+<div class="content-wrapper">
+    <!-- En-tête -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Notifications</h1>
+            <p class="text-muted">Gérez vos notifications et alertes</p>
+        </div>
+        <div class="header-right">
+            <form action="{% url 'mark_all_read' %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline" id="markAllReadBtn">
+                    <i class="fas fa-check-double"></i> Tout marquer comme lu
+                </button>
+            </form>
+            <!-- <form action="{% url 'clear_all_notifications' %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger" id="clearAllBtn" 
+                    onclick="return confirm('Êtes-vous sûr de vouloir effacer toutes les notifications ?');">
+                    <i class="fas fa-trash"></i> Effacer tout
+                </button>
+            </form> -->
+        </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="notifications-alerts">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Filtres -->
+    <div class="notifications-filters">
+        <div class="filter-tabs">
+            <a href="{% url 'admin_notifications' %}?filter=all" 
+                class="filter-tab {% if current_filter == 'all' %}active{% endif %}">
+                Toutes <span class="count">{{ total_count }}</span>
+            </a>
+            <a href="{% url 'admin_notifications' %}?filter=unread" 
+                class="filter-tab {% if current_filter == 'unread' %}active{% endif %}">
+                Non lues <span class="count">{{ unread_count }}</span>
+            </a>
+            {% for type, display in notification_types %}
+            <!-- <a href="{% url 'admin_notifications' %}?filter={{ type }}" 
+                class="filter-tab {% if current_filter == type %}active{% endif %}">
+                {{ display }}
+                {% for type_code, count in type_counts_list %}
+                    {% if type_code == type %}
+                        <span class="count">{{ count }}</span>
+                    {% endif %}
+                {% endfor %}
+            </a> -->
+            {% endfor %}
+        </div>
+        <div class="filter-actions">
+            <form method="get" action="{% url 'admin_notifications' %}" class="search-form">
+                <input type="hidden" name="filter" value="{{ current_filter }}">
+                <input type="hidden" name="time" value="{{ time_filter }}">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Rechercher dans les notifications..." 
+                        id="searchNotifications" value="{{ search_query }}">
+                    <button type="submit" class="search-btn">Rechercher</button>
+                </div>
+            </form>
+            <form method="get" action="{% url 'admin_notifications' %}" class="time-filter-form">
+                <input type="hidden" name="filter" value="{{ current_filter }}">
+                <input type="hidden" name="search" value="{{ search_query }}">
+                <select class="filter-select" id="timeFilter" name="time" onchange="this.form.submit()">
+                    <option value="all" {% if time_filter == 'all' %}selected{% endif %}>Toute période</option>
+                    <option value="today" {% if time_filter == 'today' %}selected{% endif %}>Aujourd'hui</option>
+                    <option value="week" {% if time_filter == 'week' %}selected{% endif %}>Cette semaine</option>
+                    <option value="month" {% if time_filter == 'month' %}selected{% endif %}>Ce mois</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Liste des notifications regroupées par date -->
+<div class="notifications-list">
+    {% regroup notifications by created_at|date:"d M Y" as grouped_notifications %}
+    {% for group in grouped_notifications %}
+    <div class="notifications-group">
+        <div class="group-header">
+            <h3>{{ group.grouper }}</h3>
+            <span class="group-count">{{ group.list|length }} notification{% if group.list|length != 1 %}s{% endif %}</span>
+        </div>
+        {% for notif in group.list %}
+        <div class="notification-item {% if not notif.is_read %}unread{% endif %}" data-id="{{ notif.id }}">
+            <div class="notification-icon {% if notif.type == 'stock' %}warning{% elif notif.type == 'system' %}info{% endif %}">
+                <i class="fas 
+                    {% if notif.type == 'order' %}fa-shopping-bag
+                    {% elif notif.type == 'stock' %}fa-exclamation-triangle
+                    {% elif notif.type == 'system' %}fa-info-circle
+                    {% else %}fa-bell{% endif %}">
+                </i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-header">
+                    <a href="{% url 'notification_detail' notif.id %}" class="notification-link">
+                        {% if notif.type == "order" and notif.order %}
+                            Nouvelle commande - {{ notif.order.order_number }}
+                        {% else %}
+                            {{ notif.title }}
+                        {% endif %}
+                    </a>
+                    <span class="notification-time">{{ notif.created_at|timesince }} ago</span>
+                </div>
+                <p>{{ notif.message }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-bell-slash"></i>
+        </div>
+        <h3>Aucune notification</h3>
+        <p>Vous n'avez pas de notification pour le moment</p>
+    </div>
+    {% endfor %}
+</div>
+
+
+</div>
+
+<!-- Modal de confirmation -->
+<div class="modal" id="confirmModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Confirmation</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir effectuer cette action ?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" data-dismiss="modal">Annuler</button>
+            <button class="btn btn-danger" id="confirmAction">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/dashboard/notifications.js' %}"></script>
+{% endblock %}

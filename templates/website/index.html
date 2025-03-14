@@ -1,0 +1,185 @@
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Accueil{% endblock %}
+{% block content %}
+
+
+<link rel="stylesheet" href="{% static 'css/website/home.css' %}">
+
+
+<main class="home-page">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Découvrez nos produits exceptionnels</h1>
+            <p class="hero-subtitle">Des articles de qualité sélectionnés pour vous</p>
+            <div class="hero-actions">
+                <a href="{% url 'products' %}" class="cta-button">
+                    <i class="fas fa-shopping-bag"></i>
+                    Voir les produits
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catégories -->
+    <section class="categories-section">
+        <div class="section-container">
+            <header class="section-header">
+                <h2 class="section-title">Nos Catégories</h2>
+                <p class="section-subtitle">Explorez notre sélection de produits par catégorie</p>
+            </header>
+
+            <div class="categories-grid">
+                {% for category in categories %}
+                <a href="{% url 'products' %}?category={{ category.id }}" class="category-card"
+                    data-category="{{ category.name|lower }}">
+                    <div class="category-icon">
+                        <i class="fas {{ category.icon }}" style="color: {{ category.color }}"></i>
+                    </div>
+                    <div class="category-content">
+                        <h3 class="category-title">{{ category.name }}</h3>
+                        {% if category.description %}
+                        <p class="category-description">{{ category.description|truncatechars:50 }}</p>
+                        {% endif %}
+                        <span class="category-link">Explorer <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                    {% if category.image %}
+                    <div class="category-image" style="background-image: url('{{ category.image.url }}')"></div>
+                    {% endif %}
+                </a>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-boxes"></i>
+                    <p>Aucune catégorie disponible pour le moment</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Produits Vedettes -->
+    <section class="featured-products-section">
+        <div class="section-container">
+            <header class="section-header">
+                <h2 class="section-title">Produits Vedettes</h2>
+                <p class="section-subtitle">Découvrez nos dernières nouveautés</p>
+            </header>
+
+            <div class="products-grid">
+                {% for product in featured_products %}
+                {% if product.stock > 0 %}
+                <article class="product-card" data-category="{{ product.category.name|lower }}">
+                    <a href="{% url 'product_detail' product.id %}" class="product-link">
+                        <div class="product-image">
+                            {% if product.media.exists %}
+                            <img src="{{ product.media.first.file.url }}" alt="{{ product.name }}" loading="lazy">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="Image non disponible" loading="lazy">
+                            {% endif %}
+
+                            {% if product.featured %}
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i> Vedette
+                            </div>
+                            {% endif %}
+
+                            <div class="product-overlay">
+                                <span class="view-details">
+                                    <i class="fas fa-eye"></i> Voir détails
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category">
+                                <i class="fas {{ product.category.icon }}" style="color: {{ product.category.color }}"></i>
+                                {{ product.category.name }}
+                            </div>
+
+                            <h3 class="product-title">{{ product.name }}</h3>
+
+                            {% if product.description %}
+                            <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                            {% endif %}
+
+                            <div class="product-details">
+                                <div class="product-price">
+                                    <span class="current-price">{{ product.price }} €</span>
+                                </div>
+
+                                <div class="product-stock">
+                                    <i class="fas fa-check"></i> En stock
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <button onclick="addToCart(
+                        {{ product.id }}, 
+                        '{{ product.name|escapejs }}', 
+                        {{ product.price }}, 
+                        '{% if product.media.exists %}{{ product.media.first.file.url }}{% else %}{% static 'images/placeholder.jpg' %}{% endif %}',
+                        {{ product.stock }}
+                    )" class="add-to-cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Ajouter au panier
+                    </button>
+                </article>
+                {% endif %}
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>Aucun produit vedette disponible pour le moment</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="section-footer">
+                <a href="{% url 'products' %}" class="view-all-btn">
+                    Voir tous les produits
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="section-container">
+            <div class="newsletter-content">
+                <header class="section-header">
+                    <h2 class="section-title">Restez informé</h2>
+                    <p class="section-subtitle">Inscrivez-vous à notre newsletter pour recevoir nos dernières offres</p>
+                </header>
+
+                <form class="newsletter-form" id="newsletterForm" method="POST"
+                    action="{% url 'newsletter_subscribe' %}">
+                    {% csrf_token %}
+                    <input type="email" name="email" id="newsletterEmail" placeholder="Votre adresse email" required>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                        S'inscrire
+                    </button>
+
+                </form>
+                <p>
+                    <i class="fas fa-shield-alt"></i>
+                    Vos données sont en sécurité avec nous. Désabonnez-vous à tout moment.
+                </p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Notification toast -->
+<div id="notification" class="notification" role="alert">
+    <i class="fas fa-check-circle"></i>
+    <span id="notification-message"></span>
+    <button class="close-notification">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+{% endblock %}

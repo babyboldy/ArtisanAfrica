@@ -1,0 +1,262 @@
+<!-- payment.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+
+{% block title %}E-Shop - Paiement sécurisé{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/website/payment.css' %}">
+
+<main class="payment-page">
+    <!-- Fil d'Ariane -->
+    <nav class="breadcrumb">
+        <div class="container">
+            <a href="{% url 'home' %}">Accueil</a>
+            <span class="separator">/</span>
+            <a href="{% url 'cart' %}">Panier</a>
+            <span class="separator">/</span>
+            <span class="current">Paiement</span>
+        </div>
+    </nav>
+
+    <div class="payment-container container">
+        <!-- Bannière de sécurité -->
+        <div class="security-banner">
+            <i class="fas fa-shield-alt"></i>
+            <span>Paiement 100% sécurisé - Vos données sont chiffrées et protégées</span>
+        </div>
+
+        <!-- Messages flash -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <i class="fas fa-info-circle"></i>
+                {{ message }}
+                <button type="button" class="close-alert">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="payment-content">
+            <!-- Formulaire de paiement -->
+            <section class="payment-form-section">
+                <form method="POST" action="{% url 'process_payment' %}" id="payment-form">
+                    {% csrf_token %}
+                    <meta name="csrf-token" content="{{ csrf_token }}">
+                    
+                    <h1>Finaliser votre commande</h1>
+
+                    <!-- Étapes -->
+                    <div class="payment-steps">
+                        <div class="step completed">
+                            <div class="step-number">1</div>
+                            <span>Panier</span>
+                        </div>
+                        <div class="step active">
+                            <div class="step-number">2</div>
+                            <span>Paiement</span>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <span>Confirmation</span>
+                        </div>
+                    </div>
+
+                    <!-- Champs cachés pour transmettre les totaux et le panier -->
+                    <input type="hidden" name="subtotal" id="subtotal-input">
+                    <input type="hidden" name="total_amount" id="total-amount-input">
+                    <input type="hidden" name="tax_amount" id="tax-amount-input">
+                    <input type="hidden" name="shipping_cost" id="shipping-cost-input">
+                    <div id="cart-items-container"></div>
+
+                    <!-- Adresse de livraison -->
+                    <div class="address-section">
+                        <h2>Adresse de livraison</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="shipping_first_name">Prénom *</label>
+                                <input type="text" id="shipping_first_name" name="shipping_first_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipping_last_name">Nom *</label>
+                                <input type="text" id="shipping_last_name" name="shipping_last_name" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="shipping_street">Adresse *</label>
+                                <input type="text" id="shipping_street" name="street_address" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="shipping_apartment">Complément d'adresse</label>
+                                <input type="text" id="shipping_apartment" name="apartment">
+                            </div>
+                            <div class="form-group">
+                                <label for="shipping_postal_code">Code postal *</label>
+                                <input type="text" id="shipping_postal_code" name="postal_code" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipping_city">Ville *</label>
+                                <input type="text" id="shipping_city" name="city" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="shipping_country">Pays *</label>
+                                <select id="shipping_country" name="country" required>
+                                    <option value="">Sélectionnez un pays</option>
+                                    <option value="FR">France</option>
+                                    <option value="BE">Belgique</option>
+                                    <option value="CH">Suisse</option>
+                                    <option value="LU">Luxembourg</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode de paiement -->
+                    <div class="payment-methods">
+                        <h2>Mode de paiement</h2>
+                        <div class="payment-options">
+                            <!-- Option carte bancaire -->
+                            <label class="payment-option">
+                                <input type="radio" name="payment_method" value="card" checked>
+                                <div class="option-content">
+                                    <div class="option-icon">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <div class="option-details">
+                                        <span class="option-title">Carte bancaire</span>
+                                        <span class="option-description">Paiement sécurisé par carte</span>
+                                    </div>
+                                    <div class="card-icons">
+                                        <i class="fab fa-cc-visa"></i>
+                                        <i class="fab fa-cc-mastercard"></i>
+                                        <i class="fab fa-cc-amex"></i>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Option paiement à la livraison -->
+                            <label class="payment-option">
+                                <input type="radio" name="payment_method" value="delivery">
+                                <div class="option-content">
+                                    <div class="option-icon">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                    <div class="option-details">
+                                        <span class="option-title">Paiement à la livraison</span>
+                                        <span class="option-description">Payez en espèces à la réception</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Formulaire carte bancaire -->
+                        <div id="card-payment-form" class="payment-details">
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="card_holder">Titulaire de la carte *</label>
+                                    <input type="text" id="card_holder" name="card_holder" placeholder="Nom tel qu'il apparaît sur la carte" required>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="card_number">Numéro de carte *</label>
+                                    <div class="card-input-wrapper">
+                                        <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                                        <i class="card-type-icon fab fa-cc-visa"></i>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="card_expiry">Date d'expiration *</label>
+                                    <div class="expiry-inputs">
+                                        <input type="text" id="card_expiry_month" name="card_expiry_month" placeholder="MM" maxlength="2" required>
+                                        <span>/</span>
+                                        <input type="text" id="card_expiry_year" name="card_expiry_year" placeholder="AA" maxlength="2" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="card_cvv">Code de sécurité *</label>
+                                    <div class="cvv-input-wrapper">
+                                        <input type="text" id="card_cvv" name="card_cvv" placeholder="123" maxlength="3" required>
+                                        <i class="fas fa-question-circle tooltip-trigger" data-tooltip="Le code à 3 chiffres au dos de votre carte"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulaire paiement à la livraison -->
+                        <div id="delivery-payment-form" class="payment-details" style="display: none;">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="delivery_phone">Téléphone *</label>
+                                    <input type="tel" id="delivery_phone" name="phone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="delivery_email">Email *</label>
+                                    <input type="email" id="delivery_email" name="email" required>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="delivery_instructions">Instructions de livraison</label>
+                                    <textarea id="delivery_instructions" name="delivery_instructions" rows="3" placeholder="Instructions spéciales pour le livreur"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Bouton de soumission -->
+                    <div class="submit-container">
+                        <button type="submit" class="pay-button">
+                            <i class="fas fa-lock"></i>
+                            <span>Valider la commande</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Résumé de la commande -->
+            <aside class="order-summary">
+                <div class="summary-content">
+                    <h2>Résumé de la commande</h2>
+                    <div class="order-items">
+                        <!-- Les articles seront injectés via JavaScript -->
+                    </div>
+                    <div class="price-details">
+                        <div class="price-row">
+                            <span>Sous-total</span>
+                            <span class="subtotal">0.00 €</span>
+                        </div>
+                        <div class="price-row">
+                            <span>TVA (20%)</span>
+                            <span class="tax">0.00 €</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Livraison</span>
+                            <span class="shipping">Gratuite</span>
+                        </div>
+                        <div class="price-row total">
+                            <span>Total</span>
+                            <span class="total-amount">0.00 €</span>
+                        </div>
+                    </div>
+                    <div class="payment-guarantees">
+                        <div class="guarantee">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Paiement sécurisé</span>
+                        </div>
+                        <div class="guarantee">
+                            <i class="fas fa-undo"></i>
+                            <span>Retour sous 30 jours</span>
+                        </div>
+                        <div class="guarantee">
+                            <i class="fas fa-lock"></i>
+                            <span>Données protégées</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</main>
+
+<!-- Ajout du paramètre de version pour forcer le rechargement du JS -->
+<script src="{% static 'js/website/payment.js' %}?v={% now 'U' %}"></script>
+{% endblock %}

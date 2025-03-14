@@ -1,0 +1,239 @@
+<!-- confirmation.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Confirmation de commande{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/confirmation.css' %}">
+
+<main class="confirmation-page">
+
+<!-- Débogage des articles de commande -->
+<!-- <div class="debug-info" style="background: #f8f9fa; padding: 15px; margin-bottom: 20px; border-left: 4px solid #0066cc; font-family: monospace;">
+    <h3>Informations de débogage</h3>
+    <p>Nombre d'articles: {{ items|length }}</p>
+    <p>ID de commande: {{ order.id }}</p>
+    <p>Numéro de commande: {{ order.order_number }}</p>
+    
+    <h4>Articles détectés:</h4>
+    <ul>
+    {% for item in items %}
+        <li>
+            {{ item.product_name }} - Quantité: {{ item.quantity }} - 
+            Prix: {{ item.unit_price }} € x {{ item.quantity }} = {{ item.total_price }} €
+            {% if item.options %}
+            <br>Options: {{ item.options }}
+            {% endif %}
+        </li>
+    {% empty %}
+        <li style="color: red;">Aucun article trouvé dans la commande!</li>
+    {% endfor %}
+    </ul>
+    
+    <button onclick="toggleDebug()" style="background: #0066cc; color: white; border: none; padding: 5px 10px; cursor: pointer;">
+        Masquer les infos de débogage
+    </button>
+</div> -->
+
+    <!-- Message de succès -->
+    <div class="success-message">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h1>Commande confirmée !</h1>
+        <p>Votre commande a été passée avec succès.</p>
+        <div class="order-number">
+            Numéro de commande: <strong>{{ order.order_number }}</strong>
+        </div>
+    </div>
+
+    <div class="confirmation-container">
+        <!-- Email de confirmation -->
+        <div class="confirmation-email">
+            <i class="fas fa-envelope"></i>
+            <p>Un email de confirmation a été envoyé à <strong>{{ order.customer.email }}</strong></p>
+        </div>
+
+        <!-- Détails de la commande -->
+        <div class="order-details">
+            <h2>Détails de la commande</h2>
+
+            <!-- Suivi de progression -->
+            <!-- <div class="tracking-progress">
+                <div class="progress-fill" style="width: 50%;"></div>
+                
+                <div class="tracking-step completed">
+                    <div class="step-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="step-label">Commande</div>
+                </div>
+                
+                <div class="tracking-step active">
+                    <div class="step-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="step-label">Traitement</div>
+                </div>
+                
+                <div class="tracking-step">
+                    <div class="step-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div class="step-label">Expédition</div>
+                </div>
+                
+                <div class="tracking-step">
+                    <div class="step-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="step-label">Livraison</div>
+                </div>
+            </div> -->
+
+            <div class="details-grid">
+                <!-- Informations de livraison -->
+                <div class="detail-section">
+                    <h3>Adresse de livraison</h3>
+                    <div class="info-box">
+                        <p>{{ order.customer.first_name }} {{ order.customer.last_name }}</p>
+                        {{ order.shipping_address_text|linebreaksbr }}
+                    </div>
+                </div>
+
+                <!-- Méthode de paiement -->
+                <div class="detail-section">
+                    <h3>Méthode de paiement</h3>
+                    <div class="info-box">
+                        {% if order.payment_method == 'card' %}
+                        <p><i class="fas fa-credit-card"></i> Carte bancaire</p>
+                        {% if order.payment_details.cardLastFour %}
+                        <p class="card-info">**** **** **** {{ order.payment_details.cardLastFour }}</p>
+                        {% endif %}
+                        {% elif order.payment_method == 'delivery' %}
+                        <p><i class="fas fa-truck"></i> Paiement à la livraison</p>
+                        <p class="card-info">Espèces à la réception</p>
+                        {% else %}
+                        <p><i class="fas fa-money-bill"></i> {{ order.get_payment_method_display }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- confirmation.html (suite) -->
+
+                <!-- Date de livraison estimée -->
+                <div class="detail-section">
+                    <h3>Livraison estimée</h3>
+                    <div class="info-box delivery-estimate">
+                        <i class="fas fa-truck"></i>
+                        <div>
+                            <p class="delivery-date">{{ order.estimated_delivery_date|date:"l j F Y"|capfirst }}</p>
+                            <p class="delivery-info">Livraison standard gratuite</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Numéro de suivi -->
+                <div class="detail-section">
+                    <h3>Suivi de commande</h3>
+                    <div class="info-box">
+                        {% if order.tracking_number %}
+                        <p>Numéro de suivi: <strong>{{ order.tracking_number }}</strong></p>
+                        {% else %}
+                        <p>Un email vous sera envoyé avec le numéro de suivi dès que votre colis sera expédié.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Récapitulatif des articles -->
+            <div class="order-summary">
+                <h3>Récapitulatif des articles</h3>
+
+                <div class="order-items">
+                    {% for item in items %}
+                    <div class="order-item">
+                        {% if item.product and item.product.media.exists %}
+                        <img src="{{ item.product.media.first.file.url }}" alt="{{ item.product_name }}">
+                        {% else %}
+                        <img src="{% static 'images/placeholder.jpg' %}" alt="{{ item.product_name }}">
+                        {% endif %}
+                        <div class="item-details">
+                            <h4>{{ item.product_name }}</h4>
+                            {% if item.options %}
+                            <p class="item-options">
+                                {% for key, value in item.options.items %}
+                                {{ key }}: {{ value }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                            <span class="item-quantity">Quantité: {{ item.quantity }}</span>
+                        </div>
+                        <div class="item-price">{{ item.unit_price }} € x {{ item.quantity }} = {{ item.total_price }} €</div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <p>Aucun article dans cette commande</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Total de la commande -->
+                <div class="order-total">
+                    <div class="total-line">
+                        <span>Sous-total</span>
+                        <span>{{ order.subtotal }} €</span>
+                    </div>
+                    <div class="total-line">
+                        <span>TVA (20%)</span>
+                        <span>{{ order.tax_amount }} €</span>
+                    </div>
+                    <div class="total-line">
+                        <span>Livraison</span>
+                        <span>{% if order.shipping_cost == 0 %}Gratuite{% else %}{{ order.shipping_cost }} €{% endif %}</span>
+                    </div>
+                    <div class="total-line final-total">
+                        <span>Total</span>
+                        <span>{{ order.total_amount }} €</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="confirmation-actions">
+            <a href="/" class="continue-shopping">
+                <i class="fas fa-arrow-left"></i>
+                Retour à la boutique
+            </a>
+            <a href="/orders/{{ order.id }}/invoice/" class="download-invoice" id="download-invoice-btn" target="_blank">
+                <i class="fas fa-download"></i>
+                Télécharger la facture
+            </a>
+        </div>
+
+        <!-- Service client -->
+        <div class="customer-service">
+            <h3>Besoin d'aide ?</h3>
+            <div class="service-options">
+                <a href="#" class="service-option">
+                    <i class="fas fa-question-circle"></i>
+                    <span>FAQ</span>
+                </a>
+                <a href="#" class="service-option">
+                    <i class="fas fa-envelope"></i>
+                    <span>Nous contacter</span>
+                </a>
+                <a href="tel:+33123456789" class="service-option">
+                    <i class="fas fa-phone"></i>
+                    <span>Service client</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="{% static 'js/website/confirmation.js' %}"></script>
+
+{% endblock %}

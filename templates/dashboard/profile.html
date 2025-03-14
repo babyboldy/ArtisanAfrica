@@ -1,0 +1,373 @@
+<!-- profile.html -->
+
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Profil{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/dashboard/profile.css' %}">
+
+<!-- Zone de contenu -->
+<div class="content-wrapper">
+    <!-- En-tête de la page -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Mon Profil</h1>
+            <p class="text-muted">Gérez vos informations personnelles et vos préférences</p>
+        </div>
+        <div class="header-right">
+            <button type="button" class="btn btn-primary" id="changePasswordBtn">
+                <i class="fas fa-key"></i>
+                Changer mon mot de passe
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+            <button type="button" class="close-alert">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Contenu principal -->
+    <div class="profile-container">
+        <!-- Menu latéral des sections -->
+        <div class="profile-menu">
+            <div class="menu-item {% if active_section == 'info' %}active{% endif %}" data-section="info">
+                <i class="fas fa-user"></i>
+                Informations personnelles
+            </div>
+            <div class="menu-item {% if active_section == 'professional' %}active{% endif %}" data-section="professional">
+                <i class="fas fa-briefcase"></i>
+                Informations professionnelles
+            </div>
+            <div class="menu-item {% if active_section == 'addresses' %}active{% endif %}" data-section="addresses">
+                <i class="fas fa-map-marker-alt"></i>
+                Adresses
+            </div>
+        </div>
+
+        <!-- Sections de profil -->
+        <div class="profile-sections">
+            <!-- Informations personnelles -->
+            <section class="profile-section {% if active_section == 'info' %}active{% endif %}" id="info">
+                <div class="section-header">
+                    <h2>Informations personnelles</h2>
+                    <p>Modifiez vos informations personnelles de base</p>
+                </div>
+
+                <form method="POST" action="{% url 'admin_profile' %}" enctype="multipart/form-data" class="profile-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="info">
+
+                    <div class="profile-avatar">
+                        <div class="avatar-preview">
+                            {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Photo de profil">
+                            {% else %}
+                            <img src="{% static 'images/default-avatar.png' %}" alt="Photo de profil">
+                            {% endif %}
+                            <div class="avatar-overlay">
+                                <i class="fas fa-camera"></i>
+                                <span>Changer</span>
+                            </div>
+                        </div>
+                        <input type="file" name="profile_picture" id="avatarUpload" accept="image/*" hidden>
+                        <input type="hidden" name="remove_avatar" id="removeAvatar" value="false">
+                        <div class="avatar-info">
+                            <p>Taille recommandée: 400x400px</p>
+                            <button type="button" class="btn btn-sm btn-outline remove-avatar">
+                                <i class="fas fa-trash"></i>
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="first_name">Prénom</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Nom</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Téléphone</label>
+                            <input type="tel" id="phone" name="phone" value="{{ user.phone|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Genre</label>
+                            <select id="gender" name="gender">
+                                <option value="">Non spécifié</option>
+                                {% for key, value in user.GENDER_CHOICES %}
+                                <option value="{{ key }}" {% if user.gender == key %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="birth_date">Date de naissance</label>
+                            <input type="date" id="birth_date" name="birth_date" value="{{ user.birth_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="user_type">Rôle</label>
+                            <input type="text" id="user_type" value="{{ user.get_user_type_display }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_joined">Date d'inscription</label>
+                            <input type="text" id="date_joined" value="{{ user.date_joined|date:'d M Y' }}" disabled>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Informations professionnelles -->
+            <section class="profile-section {% if active_section == 'professional' %}active{% endif %}" id="professional">
+                <div class="section-header">
+                    <h2>Informations professionnelles</h2>
+                    <p>Renseignez vos informations d'entreprise et professionnelles</p>
+                </div>
+
+                <form method="POST" action="{% url 'admin_profile' %}" class="profile-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="professional">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="company_name">Nom de l'entreprise</label>
+                            <input type="text" id="company_name" name="company_name" value="{{ user.company_name|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="profession">Profession</label>
+                            <input type="text" id="profession" name="profession" value="{{ user.profession|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Adresses -->
+            <section class="profile-section {% if active_section == 'addresses' %}active{% endif %}" id="addresses">
+                <div class="section-header">
+                    <h2>Mes adresses</h2>
+                    <p>Gérez vos adresses de facturation et livraison</p>
+                </div>
+
+                <div class="addresses-list">
+                    {% if user.addresses.all %}
+                    {% for address in user.addresses.all %}
+                    <div class="address-card">
+                        <div class="address-header">
+                            <h3>{{ address.get_address_type_display }}</h3>
+                            {% if address.is_default %}
+                            <span class="badge badge-primary">Par défaut</span>
+                            {% endif %}
+                        </div>
+                        <div class="address-content">
+                            <p><strong>{{ user.get_full_name }}</strong></p>
+                            <p>{{ address.street_address }}</p>
+                            {% if address.apartment %}
+                            <p>{{ address.apartment }}</p>
+                            {% endif %}
+                            <p>{{ address.postal_code }} {{ address.city }}</p>
+                            <p>{{ address.country }}</p>
+                        </div>
+                        <div class="address-actions">
+                            <a href="#" class="btn btn-sm btn-outline edit-address" data-id="{{ address.id }}">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="#" class="btn btn-sm btn-outline delete-address" data-id="{{ address.id }}">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h4>Aucune adresse enregistrée</h4>
+                        <p>Vous n'avez pas encore ajouté d'adresse à votre compte.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions mt-4">
+                    <button type="button" class="btn btn-primary" id="addAddressBtn">
+                        <i class="fas fa-plus"></i>
+                        Ajouter une adresse
+                    </button>
+                </div>
+            </section>
+
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal de changement de mot de passe -->
+<div class="modal" id="passwordModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Changer votre mot de passe</h3>
+                <button type="button" class="close-modal">&times;</button>
+            </div>
+            <form method="POST" action="{% url 'admin_profile' %}" id="passwordForm">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="security">
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="current_password">Mot de passe actuel</label>
+                        <div class="password-input">
+                            <input type="password" id="current_password" name="current_password" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new_password">Nouveau mot de passe</label>
+                        <div class="password-input">
+                            <input type="password" id="new_password" name="new_password" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                        <div class="password-input">
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="password-requirements">
+                        <h4>Votre mot de passe doit :</h4>
+                        <div class="requirement" data-requirement="length">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins 8 caractères
+                        </div>
+                        <div class="requirement" data-requirement="uppercase">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins une lettre majuscule
+                        </div>
+                        <div class="requirement" data-requirement="lowercase">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins une lettre minuscule
+                        </div>
+                        <div class="requirement" data-requirement="number">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins un chiffre
+                        </div>
+                        <div class="requirement" data-requirement="special">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins un caractère spécial
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline close-modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Changer mon mot de passe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'ajout/modification d'adresse -->
+<div class="modal" id="addressModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addressModalTitle">Ajouter une adresse</h3>
+                <button type="button" class="close-modal">&times;</button>
+            </div>
+            <form method="POST" action="{% url 'admin_address' %}" id="addressForm">
+                {% csrf_token %}
+                <input type="hidden" name="address_id" id="addressId" value="">
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="address_type">Type d'adresse</label>
+                        <select id="address_type" name="address_type" required>
+                            {% for key, value in address_types %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="street_address">Adresse</label>
+                        <input type="text" id="street_address" name="street_address" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="apartment">Appartement/Suite (optionnel)</label>
+                        <input type="text" id="apartment" name="apartment">
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="city">Ville</label>
+                            <input type="text" id="city" name="city" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="postal_code">Code postal</label>
+                            <input type="text" id="postal_code" name="postal_code" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="country">Pays</label>
+                        <input type="text" id="country" name="country" required>
+                    </div>
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="is_default" name="is_default">
+                        <label for="is_default">Définir comme adresse par défaut</label>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline close-modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer l'adresse</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/dashboard/profile.js' %}"></script>
+
+{% endblock %}

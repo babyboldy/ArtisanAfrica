@@ -1,0 +1,93 @@
+<!-- cart.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Panier{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/cart.css' %}">
+
+<main class="cart-page">
+    <!-- Fil d'Ariane -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="{% url 'home' %}">Accueil</a>
+            <span class="separator">/</span>
+            <span class="current">Panier</span>
+        </div>
+    </div>
+
+    <div class="cart-container container">
+        <h1 class="cart-title">Mon Panier</h1>
+
+        <div class="cart-content">
+            <!-- Liste des produits -->
+            <div class="cart-items">
+                <!-- Message si le panier est vide -->
+                <div class="empty-cart hidden">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h2>Votre panier est vide</h2>
+                    <p>Découvrez nos produits et commencez votre shopping</p>
+                    <a href="{% url 'products' %}" class="start-shopping">Commencer les achats</a>
+                </div>
+            </div>
+
+            <!-- Résumé de la commande -->
+            <div class="cart-summary">
+                <h2>Résumé de la commande</h2>
+
+                <!-- Sous-total -->
+                <div class="summary-line">
+                    <span>Sous-total</span>
+                    <span class="subtotal">0.00 €</span>
+                </div>
+
+                <!-- Livraison -->
+                <div class="summary-line">
+                    <span>Livraison</span>
+                    <span class="shipping">Gratuite</span>
+                </div>
+
+                <!-- Code promo -->
+                <div class="promo-code">
+                    <input type="text" placeholder="Code promo" id="promoCode">
+                    <button class="apply-promo">Appliquer</button>
+                </div>
+
+                <!-- Total -->
+                <div class="summary-line total-line">
+                    <span>Total</span>
+                    <span class="total">0.00 €</span>
+                </div>
+
+                <!-- Bouton de paiement -->
+                <a class="checkout-btn" href="{% url 'payment' %}">
+                    Procéder au paiement
+                </a>
+
+                <!-- Continuer les achats -->
+                <div class="cart-links">
+                    <a href="{% url 'products' %}" class="continue-shopping">
+                        <i class="fas fa-arrow-left"></i>
+                        Continuer mes achats
+                    </a>
+                </div>
+
+                <!-- Moyens de paiement -->
+                <div class="payment-methods">
+                    <p>Nous acceptons :</p>
+                    <div class="payment-icons">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-paypal"></i>
+                        <i class="fab fa-cc-apple-pay"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Script du panier -->
+<script src="{% static 'js/website/cart.js' %}"></script>
+
+{% endblock %}

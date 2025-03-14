@@ -1,0 +1,222 @@
+<!-- contact.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Contact{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/contact.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+
+<main class="contact-page">
+    <!-- Bannière -->
+    <div class="contact-banner">
+        <div class="banner-content">
+            <h1>Contactez-nous</h1>
+            <p>Notre équipe est là pour vous aider</p>
+        </div>
+    </div>
+
+    <div class="contact-container">
+        <!-- Informations de contact -->
+        <div class="contact-info">
+            <div class="info-card">
+                <div class="icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h3>Adresse</h3>
+                <p>123 Rue du Commerce</p>
+                <p>75001 Paris, France</p>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <h3>Téléphone</h3>
+                <p>+33 1 23 45 67 89</p>
+                <p>Lun - Ven, 9h - 18h</p>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <h3>Email</h3>
+                <p>contact@eshop.com</p>
+                <p>support@eshop.com</p>
+            </div>
+
+            <div class="info-card">
+                <div class="icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Chat en direct</h3>
+                <p>Disponible 24/7</p>
+                <button class="start-chat">Démarrer un chat</button>
+            </div>
+
+        </div>
+
+        <!-- Formulaire et carte -->
+        <div class="contact-main">
+            <!-- Formulaire de contact -->
+            <div class="contact-form-container">
+                <h2>Envoyez-nous un message</h2>
+
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert {{ message.tags }}-message">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'contact' %}" class="contact-form">
+                    {% csrf_token %}
+
+                    <div class="form-row double">
+                        <div class="input-group">
+                            <label for="firstName">Prénom</label>
+                            <input type="text" id="firstName" name="first_name" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="lastName">Nom</label>
+                            <input type="text" id="lastName" name="last_name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row double">
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="phone">Téléphone</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="subject">Sujet</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Sélectionnez un sujet</option>
+                                {% for value, label in subject_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="message">Message</label>
+                            <textarea id="message" name="message" rows="6" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="privacy" name="privacy_accepted" required>
+                            <label for="privacy">
+                                J'accepte que mes données soient traitées conformément à la politique de confidentialité
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        Envoyer le message
+                    </button>
+                </form>
+            </div>
+
+            <!-- Carte -->
+            <div class="map-container">
+                <div id="map" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h2>Questions fréquentes</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Comment suivre ma commande ?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Vous pouvez suivre votre commande en utilisant le numéro de suivi envoyé par email ou en vous
+                            connectant à votre compte.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Quel est le délai de livraison ?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Le délai de livraison standard est de 3-5 jours ouvrés. Pour les livraisons express, comptez
+                            24-48h.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Comment retourner un article ?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Vous disposez de 30 jours pour retourner un article. Connectez-vous à votre compte pour
+                            initier un retour.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Quels sont les moyens de paiement acceptés ?</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal et les virements bancaires.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Chargement des bibliothèques externes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Chargement de votre script custom -->
+<script src="{% static 'js/website/contact.js' %}"></script>
+
+<!-- Initialisation de la carte -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const position = [5.225936, -3.753666];
+        const map = L.map('map').setView(position, 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker(position).addTo(map)
+            .bindPopup("<b>E-Shop</b><br>123 Rue du Commerce, Paris")
+            .openPopup();
+    });
+</script>
+
+
+
+{% endblock %}

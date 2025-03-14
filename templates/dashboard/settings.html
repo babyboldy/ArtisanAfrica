@@ -1,0 +1,356 @@
+<!-- settings.html -->
+
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Accueil{% endblock %}
+{% block content %}
+
+
+<link rel="stylesheet" href="{% static 'css/dashboard/settings.css' %}">
+
+
+
+
+<!-- Zone de contenu -->
+<div class="content-wrapper">
+    <!-- En-tête de la page -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Paramètres</h1>
+            <p class="text-muted">Configurez les paramètres de votre boutique</p>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-outline" id="resetSettings">
+                <i class="fas fa-undo"></i>
+                Réinitialiser
+            </button>
+            <button class="btn btn-primary" id="saveSettings">
+                <i class="fas fa-save"></i>
+                Enregistrer
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenu principal -->
+    <div class="settings-container">
+        <!-- Navigation des paramètres -->
+        <div class="settings-nav">
+            <button class="nav-item active" data-section="general">
+                <i class="fas fa-store"></i>
+                Général
+            </button>
+            <button class="nav-item" data-section="store">
+                <i class="fas fa-shopping-cart"></i>
+                Boutique
+            </button>
+            <button class="nav-item" data-section="shipping">
+                <i class="fas fa-truck"></i>
+                Livraison
+            </button>
+            <button class="nav-item" data-section="payment">
+                <i class="fas fa-credit-card"></i>
+                Paiement
+            </button>
+            <button class="nav-item" data-section="tax">
+                <i class="fas fa-percentage"></i>
+                Taxes
+            </button>
+            <button class="nav-item" data-section="emails">
+                <i class="fas fa-envelope"></i>
+                Emails
+            </button>
+            <button class="nav-item" data-section="api">
+                <i class="fas fa-code"></i>
+                API & Intégrations
+            </button>
+        </div>
+
+        <!-- Sections des paramètres -->
+        <div class="settings-sections">
+            <!-- Section Général -->
+            <section class="settings-section active" id="general">
+                <div class="section-header">
+                    <h2>Paramètres généraux</h2>
+                    <p>Configurez les informations de base de votre boutique</p>
+                </div>
+
+                <div class="settings-form">
+                    <!-- Informations de la boutique -->
+                    <div class="form-card">
+                        <h3>Informations de la boutique</h3>
+
+                        <div class="form-group">
+                            <label for="storeName">Nom de la boutique</label>
+                            <input type="text" id="storeName" value="E-Shop">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="storeDescription">Description</label>
+                            <textarea id="storeDescription"
+                                rows="3">Votre boutique en ligne de confiance</textarea>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="storeEmail">Email</label>
+                                <input type="email" id="storeEmail" value="contact@eshop.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="storePhone">Téléphone</label>
+                                <input type="tel" id="storePhone" value="+33 1 23 45 67 89">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="storeAddress">Adresse</label>
+                            <input type="text" id="storeAddress" value="123 Rue du Commerce">
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="storeCity">Ville</label>
+                                <input type="text" id="storeCity" value="Paris">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="storeZip">Code postal</label>
+                                <input type="text" id="storeZip" value="75001">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="storeCountry">Pays</label>
+                                <select id="storeCountry">
+                                    <option value="FR" selected>France</option>
+                                    <option value="BE">Belgique</option>
+                                    <option value="CH">Suisse</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logo et favicon -->
+                    <div class="form-card">
+                        <h3>Logo et favicon</h3>
+
+                        <div class="image-upload-group">
+                            <label>Logo du site</label>
+                            <div class="image-preview">
+                                <img src="/api/placeholder/200/60" alt="Logo">
+                                <div class="image-actions">
+                                    <button class="btn btn-sm btn-outline">
+                                        <i class="fas fa-upload"></i>
+                                        Changer
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="help-text">Format recommandé : PNG, dimensions minimales 200x60px</p>
+                        </div>
+
+                        <div class="image-upload-group">
+                            <label>Favicon</label>
+                            <div class="image-preview small">
+                                <img src="/api/placeholder/32/32" alt="Favicon">
+                                <div class="image-actions">
+                                    <button class="btn btn-sm btn-outline">
+                                        <i class="fas fa-upload"></i>
+                                        Changer
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="help-text">Format : ICO ou PNG 32x32px</p>
+                        </div>
+                    </div>
+
+                    <!-- Réseaux sociaux -->
+                    <div class="form-card">
+                        <h3>Réseaux sociaux</h3>
+
+                        <div class="social-links">
+                            <div class="form-group">
+                                <div class="input-with-icon">
+                                    <i class="fab fa-facebook"></i>
+                                    <input type="url" placeholder="URL Facebook">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-with-icon">
+                                    <i class="fab fa-twitter"></i>
+                                    <input type="url" placeholder="URL Twitter">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-with-icon">
+                                    <i class="fab fa-instagram"></i>
+                                    <input type="url" placeholder="URL Instagram">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-with-icon">
+                                    <i class="fab fa-linkedin"></i>
+                                    <input type="url" placeholder="URL LinkedIn">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Boutique -->
+            <section class="settings-section" id="store">
+                <div class="section-header">
+                    <h2>Paramètres de la boutique</h2>
+                    <p>Configurez les options de vente et d'affichage des produits</p>
+                </div>
+
+                <div class="settings-form">
+                    <!-- Paramètres de vente -->
+                    <div class="form-card">
+                        <h3>Paramètres de vente</h3>
+
+                        <div class="form-group">
+                            <label for="currency">Devise par défaut</label>
+                            <select id="currency">
+                                <option value="EUR" selected>Euro (€)</option>
+                                <option value="USD">Dollar US ($)</option>
+                                <option value="GBP">Livre Sterling (£)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="minOrder">Montant minimum de commande</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">€</span>
+                                    <input type="number" id="minOrder" value="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maxOrder">Montant maximum de commande</label>
+                                <div class="input-with-icon">
+                                    <span class="input-icon">€</span>
+                                    <input type="number" id="maxOrder" value="5000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Activer les ventes</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Autoriser les commandes invités</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox">
+                                <span>Mode maintenance</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Affichage des produits -->
+                    <div class="form-card">
+                        <h3>Affichage des produits</h3>
+
+                        <div class="form-group">
+                            <label for="productsPerPage">Produits par page</label>
+                            <input type="number" id="productsPerPage" value="12">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sortDefault">Tri par défaut</label>
+                            <select id="sortDefault">
+                                <option value="newest">Plus récents</option>
+                                <option value="price-asc">Prix croissant</option>
+                                <option value="price-desc">Prix décroissant</option>
+                                <option value="name">Nom</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Afficher les prix TTC</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Afficher le stock disponible</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Afficher les avis clients</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="form-card">
+                        <h3>Gestion du stock</h3>
+
+                        <div class="form-group">
+                            <label for="lowStockThreshold">Seuil de stock faible</label>
+                            <input type="number" id="lowStockThreshold" value="5">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Gérer le stock automatiquement</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox" checked>
+                                <span>Notifier en cas de stock faible</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-wrapper">
+                                <input type="checkbox">
+                                <span>Autoriser les précommandes</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Les autres sections (shipping, payment, tax, emails, api) suivront le même modèle -->
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script src="{% static 'js/dashboard/settings.js' %}"></script>
+
+{% endblock %}

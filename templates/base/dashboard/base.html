@@ -1,0 +1,152 @@
+<!-- base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Shop Admin - Dashboard{% endblock %}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="{% static 'css/dashboard/dashboard.css' %}">
+</head>
+
+<body class="dashboard">
+    <!-- Barre latérale -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-shopping-cart"></i>
+                <span>E-Shop Admin</span>
+            </div>
+            <button class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{% url 'admin_dashboard' %}">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'admin_products' %}">
+                        <i class="fas fa-box"></i>
+                        <span>Produits</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'admin_categories' %}">
+                        <i class="fas fa-tags"></i>
+                        <span>Catégories</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'admin_orders' %}">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>Commandes</span>
+                        <!-- <span class="badge">5</span> -->
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'admin_customers' %}">
+                        <i class="fas fa-users"></i>
+                        <span>Clients</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'admin_notifications' %}">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        <!-- <span class="badge badge-notification">5</span> -->
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="top-bar-left">
+                <button class="menu-trigger">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <!-- <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Rechercher...">
+                </div> -->
+            </div>
+
+            <div class="top-bar-right">
+                <div class="notification-center">
+                    <button class="notification-trigger">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_count > 0 %}
+                        <span class="notification-badge" id="notification-badge">
+                            {{ unread_count }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    <div class="notification-dropdown">
+                        <div class="notification-header">
+                            <h3>Notifications</h3>
+                            <button class="mark-all-read" id="mark-all-read">Tout marquer comme lu</button>
+                        </div>
+                        <div class="notification-list">
+                            {% for notification in unread_notifications %}
+                                <div class="notification-item unread" data-id="{{ notification.id }}">
+                                    <i class="fas {{ notification.icon }}"></i>
+                                    <div class="notification-content">
+                                        <p>{{ notification.title }}</p>
+                                        <span>{{ notification.created_at|date:"d/m/Y H:i" }}</span>
+                                    </div>
+                                    <div class="unread-dot" data-id="{{ notification.id }}"></div>
+                                </div>
+                            {% empty %}
+                                <p class="no-notifications">Aucune nouvelle notification</p>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'admin_notifications' %}" class="view-all">Voir toutes les notifications</a>
+                    </div>
+                </div>
+                
+                
+
+                <div class="profile-menu">
+                    <button class="profile-trigger">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Photo de profil" class="profile-image">
+                        {% else %}
+                        <img src="{% static 'images/default-profile.png' %}" alt="Photo de profil" class="profile-image">
+                        {% endif %}
+                        <span class="profile-name">{{ user.get_full_name }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="profile-dropdown">
+                        <a href="{% url 'admin_profile' %}">
+                            <i class="fas fa-user"></i> Mon profil
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'logout' %}" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{% static 'js/dashboard/dashboard.js' %}"></script>
+</body>
+
+</html>

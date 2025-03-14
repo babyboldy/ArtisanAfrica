@@ -1,0 +1,528 @@
+<!-- order.html -->
+
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Accueil{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/dashboard/order.css' %}">
+
+<!-- Zone de contenu -->
+<div class="content-wrapper">
+    <!-- En-tête de la page -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Commandes</h1>
+            <p class="text-muted">Gérez toutes vos commandes</p>
+        </div>
+        <!-- <div class="header-right">
+            <button class="btn btn-outline" id="exportOrders">
+                <i class="fas fa-download"></i>
+                Exporter
+            </button>
+        </div> -->
+    </div>
+
+    <!-- Statistiques rapides -->
+    <!-- <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e8f5e9;">
+                <i class="fas fa-shopping-cart" style="color: #22c55e;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Commandes aujourd'hui</h3>
+                <div class="stat-value">24</div>
+                <div class="stat-change increase">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>8.5%</span>
+                    vs hier
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd;">
+                <i class="fas fa-euro-sign" style="color: #3b82f6;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Chiffre d'affaires</h3>
+                <div class="stat-value">3,247 €</div>
+                <div class="stat-change increase">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>12.3%</span>
+                    vs hier
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fff7ed;">
+                <i class="fas fa-clock" style="color: #f97316;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>En attente</h3>
+                <div class="stat-value">8</div>
+                <div class="stat-change decrease">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>4.2%</span>
+                    vs hier
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #dcfce7;">
+                <i class="fas fa-check-circle" style="color: #22c55e;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Livrées</h3>
+                <div class="stat-value">16</div>
+                <div class="stat-change increase">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>6.8%</span>
+                    vs hier
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- Barre d'outils -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Rechercher une commande..." id="searchOrder">
+            </div>
+            
+            <div class="filter-group">
+                <select id="statusFilter" class="filter-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="pending">En attente</option>
+                    <option value="processing">En cours</option>
+                    <option value="shipped">Expédiée</option>
+                    <option value="delivered">Livrée</option>
+                    <option value="cancelled">Annulée</option>
+                </select>
+
+                <select id="dateFilter" class="filter-select">
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                    <option value="custom">Personnalisé</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="toolbar-right">
+            <div class="batch-actions" style="display: none;">
+                <span class="selected-count">0 sélectionné(s)</span>
+                <button class="btn btn-outline btn-sm" id="batchUpdate">
+                    <i class="fas fa-pencil"></i>
+                    Mise à jour groupée
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des commandes -->
+    <div class="orders-table-wrapper">
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="selectAll">
+                            <span class="checkbox-custom"></span>
+                        </label>
+                    </th>
+                    <th>Commande</th>
+                    <th>Client</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Statut</th>
+                    <th>Paiement</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" class="order-select">
+                            <span class="checkbox-custom"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <div class="order-info">
+                            <span class="order-id">#{{ order.order_number }}</span>
+                            <span class="order-items">{{ order.items.count }} article{% if order.items.count != 1 %}s{% endif %}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="customer-info">
+                            {% if order.customer.profile.image %}
+                                <img src="{{ order.customer.profile.image.url }}" alt="{{ order.customer.get_full_name|default:order.customer.username }}">
+                            {% else %}
+                                <img src="/api/placeholder/32/32" alt="{{ order.customer.get_full_name|default:order.customer.username }}">
+                            {% endif %}
+                            <div>
+                                <h4>{{ order.customer.get_full_name|default:order.customer.username }}</h4>
+                                <span class="customer-email">{{ order.customer.email }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="date-info">
+                            <span>{{ order.created_at|date:"d M Y" }}</span>
+                            <span class="time">{{ order.created_at|date:"H:i" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="price-info">
+                            <strong>{{ order.total_amount }} €</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span>
+                    </td>
+                    <td>
+                        <span class="payment-status {{ order.payment_status }}">
+                            {% if order.payment_status == "completed" %}
+                                <i class="fas fa-check-circle"></i> Payée
+                            {% else %}
+                                <i class="fas fa-times-circle"></i> {{ order.get_payment_status_display }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" title="Plus d'options">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">Aucune commande trouvée.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <!-- <div class="table-pagination">
+        <div class="pagination-info">
+            Affichage de 1-10 sur {{ orders|length }} commandes
+        </div>
+        <div class="pagination-controls">
+            <button class="btn btn-outline btn-sm" disabled>
+                <i class="fas fa-chevron-left"></i>
+                Précédent
+            </button>
+            <div class="pagination-pages">
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <span>...</span>
+                <button class="page-btn">N</button>
+            </div>
+            <button class="btn btn-outline btn-sm">
+                Suivant
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div> -->
+</div>
+
+<!-- Modal de détail de commande -->
+<div class="modal" id="orderDetailModal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h2>Détails de la commande #ORD-XXX</h2>
+            <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- Contenu détaillé de la commande -->
+            <div class="order-detail-grid">
+                <!-- Informations de commande -->
+                <div class="detail-section">
+                    <h3>Informations de commande</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Statut</label>
+                            <span class="status-badge pending">En attente</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Date</label>
+                            <span>10 Fév 2024 14:30</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Paiement</label>
+                            <span class="payment-status completed">
+                                <i class="fas fa-check-circle"></i>
+                                Payée - Carte bancaire
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations client -->
+                <div class="detail-section">
+                    <h3>Client</h3>
+                    <div class="customer-details">
+                        <div class="customer-info">
+                            <img src="/api/placeholder/48/48" alt="Jean Dupont">
+                            <div>
+                                <h4>Jean Dupont</h4>
+                                <span>Client depuis Jan 2024</span>
+                            </div>
+                        </div>
+                        <div class="contact-info">
+                            <p><i class="fas fa-envelope"></i> jean@example.com</p>
+                            <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adresses -->
+                <div class="addresses-grid">
+                    <div class="address-card">
+                        <h4>Adresse de livraison</h4>
+                        <p>Jean Dupont</p>
+                        <p>123 Rue du Commerce</p>
+                        <p>75001 Paris</p>
+                        <p>France</p>
+                    </div>
+                    <div class="address-card">
+                        <h4>Adresse de facturation</h4>
+                        <p>Jean Dupont</p>
+                        <p>123 Rue du Commerce</p>
+                        <p>75001 Paris</p>
+                        <p>France</p>
+                    </div>
+                </div>
+
+                <!-- Produits -->
+                <div class="detail-section full-width">
+                    <h3>Produits</h3>
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Prix unitaire</th>
+                                <th>Quantité</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="product-info">
+                                        <img src="/api/placeholder/40/40" alt="Produit">
+                                        <div>
+                                            <h4>Smartphone XYZ</h4>
+                                            <span>SKU: PRD-123</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>199.99 €</td>
+                                <td>1</td>
+                                <td>199.99 €</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2"></td>
+                                <td>Sous-total</td>
+                                <td>199.99 €</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"></td>
+                                <td>Livraison</td>
+                                <td>9.99 €</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"></td>
+                                <td>TVA (20%)</td>
+                                <td>42.00 €</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td colspan="2"></td>
+                                <td>Total</td>
+                                <td>251.98 €</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Historique -->
+                <div class="detail-section full-width">
+                    <h3>Historique</h3>
+                    <div class="order-timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Commande passée</h4>
+                                <p>10 Fév 2024 14:30</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Paiement confirmé</h4>
+                                <p>10 Fév 2024 14:31</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item current">
+                            <div class="timeline-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>En préparation</h4>
+                                <p>10 Fév 2024 15:00</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Expédition prévue</h4>
+                                <p>11 Fév 2024</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Livraison prévue</h4>
+                                <p>12 Fév 2024</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="detail-section full-width">
+                    <h3>Notes</h3>
+                    <div class="notes-section">
+                        <div class="note-box">
+                            <textarea placeholder="Ajouter une note..." rows="3"></textarea>
+                            <div class="note-actions">
+                                <button class="btn btn-outline btn-sm">
+                                    <i class="fas fa-paperclip"></i>
+                                    Joindre
+                                </button>
+                                <button class="btn btn-primary btn-sm">
+                                    Ajouter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="notes-list">
+                            <div class="note-item">
+                                <div class="note-header">
+                                    <div class="note-author">
+                                        <img src="/api/placeholder/24/24" alt="Admin">
+                                        <span>Admin</span>
+                                    </div>
+                                    <span class="note-date">10 Fév 2024 14:45</span>
+                                </div>
+                                <p>Client contacté par téléphone pour confirmer l'adresse de livraison.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-actions-left">
+                <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-print"></i>
+                    Imprimer
+                </button>
+                <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-file-pdf"></i>
+                    Générer PDF
+                </button>
+            </div>
+            <div class="modal-actions-right">
+                <button class="btn btn-outline" data-dismiss="modal">Fermer</button>
+                <button class="btn btn-primary">Mettre à jour</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de mise à jour groupée -->
+<div class="modal" id="batchUpdateModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Mise à jour groupée</h2>
+            <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="batchStatus">Statut</label>
+                <select id="batchStatus" class="form-control">
+                    <option value="">Sélectionner un statut</option>
+                    <option value="processing">En cours</option>
+                    <option value="shipped">Expédiée</option>
+                    <option value="delivered">Livrée</option>
+                    <option value="cancelled">Annulée</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="batchNote">Note</label>
+                <textarea id="batchNote" class="form-control" rows="3" placeholder="Ajouter une note pour toutes les commandes sélectionnées..."></textarea>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Cette action mettra à jour toutes les commandes sélectionnées.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" data-dismiss="modal">Annuler</button>
+            <button class="btn btn-primary" id="confirmBatchUpdate">Mettre à jour</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation -->
+<div class="modal" id="confirmationModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Confirmation</h2>
+            <button class="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="confirmation-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Êtes-vous sûr de vouloir effectuer cette action ?</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" data-dismiss="modal">Annuler</button>
+            <button class="btn btn-danger" id="confirmAction">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/dashboard/order.js' %}"></script>
+
+{% endblock %}

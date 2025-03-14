@@ -1,0 +1,263 @@
+<!-- products-detail.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}{{ product.name }} - E-Shop{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/styles.css' %}">
+<link rel="stylesheet" href="{% static 'css/website/product-detail.css' %}">
+
+<main class="product-detail-page">
+    <div class="product-container">
+        <!-- Fil d'Ariane -->
+        <div class="breadcrumb">
+            <a href="{% url 'home' %}">Accueil</a>
+            <span class="separator">/</span>
+            <a href="{% url 'products' %}">Produits</a>
+            <span class="separator">/</span>
+            <a href="{% url 'products' %}?category={{ product.category.name|lower }}">{{ product.category.name }}</a>
+            <span class="separator">/</span>
+            <span class="current">{{ product.name }}</span>
+        </div>
+
+        <!-- Section principale du produit -->
+        <div class="product-main">
+            <!-- Galerie d'images -->
+            <div class="product-gallery">
+                <div class="main-image">
+                    {% if product.media.all %}
+                    <img src="{{ product.media.first.file.url }}" alt="{{ product.name }}">
+                    {% else %}
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="{{ product.name }}">
+                    {% endif %}
+                </div>
+                {% if product.media.all|length > 1 %}
+                <div class="thumbnail-list">
+                    {% for media in product.media.all %}
+                    <div class="thumbnail {% if forloop.first %}active{% endif %}">
+                        <img src="{{ media.file.url }}" alt="{{ product.name }} - Vue {{ forloop.counter }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Informations produit -->
+            <div class="product-info">
+                <h1>{{ product.name }}</h1>
+                <div class="product-meta">
+                    <div class="product-rating">
+                        {% for i in "12345" %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                        <span>(4.5 - 125 avis)</span>
+                    </div>
+                    <div class="product-category">
+                        Catégorie: <a href="{% url 'products' %}?category={{ product.category.name|lower }}">
+                            <i class="fas {{ product.category.icon }}" style="color: {{ product.category.color }}"></i>
+                            {{ product.category.name }}
+                        </a>
+                    </div>
+                </div>
+
+                <div class="product-price">
+                    <span class="current-price">{{ product.price }} €</span>
+                    {% if product.old_price %}
+                    <span class="original-price">{{ product.old_price }} €</span>
+                    <span class="discount">
+                        -{{ product.discount_percentage|floatformat:0 }}%
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="product-description">
+                    <p>{{ product.description }}</p>
+                </div>
+
+                {% if product.has_variants %}
+                <div class="product-options">
+                    {% if product.colors %}
+                    <div class="option-group">
+                        <label>Couleur:</label>
+                        <div class="color-options">
+                            {% for color in product.colors %}
+                            <button class="color-option {% if forloop.first %}active{% endif %}"
+                                style="background-color: {{ color.code }};" title="{{ color.name }}"></button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if product.storage_options %}
+                    <div class="option-group">
+                        <label>Stockage:</label>
+                        <div class="storage-options">
+                            {% for storage in product.storage_options %}
+                            <button class="storage-option {% if forloop.first %}active{% endif %}">
+                                {{ storage }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="add-to-cart-section">
+                    <div class="quantity-selector">
+                        <button class="quantity-btn minus" {% if product.stock < 1 %}disabled{% endif %}>-</button>
+                        <input type="number" value="1" min="1" max="{{ product.stock }}" {% if product.stock < 1 %}disabled{% endif %}>
+                        <button class="quantity-btn plus" {% if product.stock < 1 %}disabled{% endif %}>+</button>
+                    </div>
+                    {% if product.stock > 0 %}
+                    <button onclick="addToCart(
+                        {{ product.id }}, 
+                        '{{ product.name|escapejs }}', 
+                        {{ product.price }}, 
+                        '{% if product.media.exists %}{{ product.media.first.file.url }}{% else %}{% static 'images/placeholder.jpg' %}{% endif %}',
+                        {{ product.stock }}
+                    )" class="add-to-cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Ajouter au panier
+                    </button>
+                    {% else %}
+                    <button class="notify-stock-btn">
+                        <i class="fas fa-bell"></i>
+                        Alerter disponibilité
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="product-actions">
+                    <button class="action-btn" onclick="toggleFavorite({{ product.id }})">
+                        <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart"></i>
+                        {% if is_favorite %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}
+                    </button>
+                    <button class="action-btn share-btn">
+                        <i class="fas fa-share-alt"></i>
+                        Partager
+                    </button>
+                </div>
+
+                {% if product.stock > 0 %}
+                <div class="stock-info in-stock">
+                    <i class="fas fa-check-circle"></i>
+                    En stock ({{ product.stock }} disponibles)
+                </div>
+                {% else %}
+                <div class="stock-info out-of-stock">
+                    <i class="fas fa-times-circle"></i>
+                    Rupture de stock
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Détails du produit -->
+        <div class="product-details">
+            <div class="details-tabs">
+                <button class="tab-btn active" data-tab="description">Description</button>
+                <button class="tab-btn" data-tab="specifications">Caractéristiques</button>
+                <button class="tab-btn" data-tab="reviews">Avis (125)</button>
+            </div>
+
+            <div class="tab-content active" id="description">
+                <h2>Description détaillée</h2>
+                {{ product.description|linebreaks }}
+            </div>
+
+            <div class="tab-content" id="specifications">
+                <h2>Caractéristiques techniques</h2>
+                <table class="specs-table">
+                    {% if product.weight %}
+                    <tr>
+                        <td>Poids</td>
+                        <td>{{ product.weight }} kg</td>
+                    </tr>
+                    {% endif %}
+                    {% if product.dimensions %}
+                    <tr>
+                        <td>Dimensions</td>
+                        <td>{{ product.dimensions }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if product.sku %}
+                    <tr>
+                        <td>SKU</td>
+                        <td>{{ product.sku }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if product.barcode %}
+                    <tr>
+                        <td>Code-barres</td>
+                        <td>{{ product.barcode }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <div class="tab-content" id="reviews">
+                <h2>Avis clients</h2>
+                <!-- Section des avis à implémenter avec un système de notation -->
+            </div>
+        </div>
+
+        <!-- Produits similaires -->
+        {% if similar_products %}
+        <div class="similar-products">
+            <h2>Produits similaires</h2>
+            <div class="products-grid">
+                {% for similar in similar_products %}
+                <div class="product-card">
+                    <a href="{% url 'product_detail' similar.id %}" class="product-link">
+                        <div class="product-image">
+                            {% if similar.media.exists %}
+                            <img src="{{ similar.media.first.file.url }}" alt="{{ similar.name }}">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="{{ similar.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ similar.name }}</h3>
+                            <p class="product-price">{{ similar.price }} €</p>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</main>
+
+<!-- Modal pour l'alerte de stock -->
+<div id="stockAlertModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Alerter de la disponibilité</h2>
+        <p>Recevez une notification dès que ce produit sera de nouveau disponible.</p>
+        <form id="stockAlertForm" data-product-id="{{ product.id }}">
+            {% csrf_token %}
+            <input type="email" placeholder="Votre email" required>
+            <button type="submit">Confirmer</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de partage -->
+<div id="shareModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Partager ce produit</h2>
+        <div class="share-buttons">
+            <button onclick="share('facebook')"><i class="fab fa-facebook"></i> Facebook</button>
+            <button onclick="share('twitter')"><i class="fab fa-twitter"></i> Twitter</button>
+            <button onclick="share('whatsapp')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button onclick="copyLink()"><i class="fas fa-link"></i> Copier le lien</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/website/product-detail.js' %}"></script>
+
+{% endblock %}

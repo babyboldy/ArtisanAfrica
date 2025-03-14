@@ -1,0 +1,242 @@
+<!-- dashboard.html -->
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Accueil{% endblock %}
+{% block content %}
+
+
+<link rel="stylesheet" href="{% static 'css/dashboard/dashboard-overview.css' %}">
+
+<!-- Define the inline SVG for default product image -->
+<script>
+    const DEFAULT_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23f3f4f6'/%3E%3Cpath d='M20 15C18.3431 15 17 16.3431 17 18C17 19.6569 18.3431 21 20 21C21.6569 21 23 19.6569 23 18C23 16.3431 21.6569 15 20 15Z' fill='%23a1a1aa'/%3E%3Cpath d='M14 25.6C14 25.0399 14.3668 24.5397 14.8944 24.3526C16.8738 23.6925 18.4426 23.3333 20 23.3333C21.5574 23.3333 23.1262 23.6925 25.1056 24.3526C25.6332 24.5397 26 25.0399 26 25.6V26.6667H14V25.6Z' fill='%23a1a1aa'/%3E%3Cpath d='M10 6.66667C8.15905 6.66667 6.66667 8.15905 6.66667 10V30C6.66667 31.841 8.15905 33.3333 10 33.3333H30C31.841 33.3333 33.3333 31.841 33.3333 30V10C33.3333 8.15905 31.841 6.66667 30 6.66667H10ZM30 10V30H10V10H30Z' fill='%23a1a1aa'/%3E%3C/svg%3E";
+</script>
+
+<div class="content-wrapper">
+    <!-- En-tête de la page -->
+    <div class="page-header">
+        <h1>Tableau de bord</h1>
+        <div class="date-range">
+            <button class="date-range-btn">
+                <i class="fas fa-calendar"></i>
+                <span>7 derniers jours</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e8f5e9;">
+                <i class="fas fa-shopping-cart" style="color: #22c55e;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Commandes Totales</h3>
+                <div class="stat-value">{{ stats.total_orders }}</div>
+                <div class="stat-change {% if orders_percentage > 0 %}increase{% elif orders_percentage < 0 %}decrease{% else %}neutral{% endif %}">
+                    <i class="fas {% if orders_percentage > 0 %}fa-arrow-up{% elif orders_percentage < 0 %}fa-arrow-down{% else %}fa-minus{% endif %}"></i>
+                    <span>{{ orders_percentage|floatformat:1 }}%</span>
+                    vs période précédente
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd;">
+                <i class="fas fa-dollar-sign" style="color: #3b82f6;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Revenus</h3>
+                <div class="stat-value">{{ stats.total_revenue|floatformat:2 }} €</div>
+                <div class="stat-change {% if revenue_percentage > 0 %}increase{% elif revenue_percentage < 0 %}decrease{% else %}neutral{% endif %}">
+                    <i class="fas {% if revenue_percentage > 0 %}fa-arrow-up{% elif revenue_percentage < 0 %}fa-arrow-down{% else %}fa-minus{% endif %}"></i>
+                    <span>{{ revenue_percentage|floatformat:1 }}%</span>
+                    vs période précédente
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #f3e8ff;">
+                <i class="fas fa-users" style="color: #6b21a8;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Nouveaux Clients</h3>
+                <div class="stat-value">{{ stats.new_customers }}</div>
+                <div class="stat-change {% if customers_percentage > 0 %}increase{% elif customers_percentage < 0 %}decrease{% else %}neutral{% endif %}">
+                    <i class="fas {% if customers_percentage > 0 %}fa-arrow-up{% elif customers_percentage < 0 %}fa-arrow-down{% else %}fa-minus{% endif %}"></i>
+                    <span>{{ customers_percentage|floatformat:1 }}%</span>
+                    vs période précédente
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fef3f2;">
+                <i class="fas fa-box" style="color: #ef4444;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Produits en Rupture</h3>
+                <div class="stat-value">{{ stats.out_of_stock }}</div>
+                <div class="stat-change neutral">
+                    <i class="fas fa-minus"></i>
+                    <span>{{ stock_percentage|floatformat:1 }}%</span>
+                    vs période précédente
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-grid">
+        <!-- Graphique des ventes -->
+        <div class="chart-card large">
+            <div class="chart-header">
+                <h3>Évolution des ventes</h3>
+                <div class="chart-actions">
+                    <button class="chart-action active" data-period="day">Jour</button>
+                    <button class="chart-action" data-period="week">Semaine</button>
+                    <button class="chart-action" data-period="month">Mois</button>
+                </div>
+            </div>
+            <div class="chart-content">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Graphique circulaire des catégories -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Ventes par catégorie</h3>
+                <button class="chart-menu">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+            <div class="chart-content">
+                <canvas id="categoriesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top produits -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>Top Produits</h3>
+                <button class="chart-menu">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+            <div class="products-list">
+                {% for product in top_products %}
+                <div class="product-item">
+                    <!-- Use onerror to set the default image -->
+                    <img src="{{ product.image }}" alt="{{ product.name }}" width="40" height="40" 
+                         onerror="this.onerror=null; this.src=DEFAULT_IMAGE;">
+                    <div class="product-info">
+                        <h4>{{ product.name }}</h4>
+                        <span>{{ product.sales }} ventes</span>
+                    </div>
+                    <div class="product-progress">
+                        <div class="progress-bar" style="width: {{ product.percentage }}%;"></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="product-item">
+                    <div class="product-info">
+                        <h4>Pas de données disponibles</h4>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Dernières commandes -->
+    <!-- <div class="recent-orders">
+        <div class="table-header">
+            <h3>Commandes récentes</h3>
+            <a href="" class="view-all">Voir tout</a>
+        </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID Commande</th>
+                        <th>Client</th>
+                        <th>Produits</th>
+                        <th>Total</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>
+                            <div class="customer-info">
+                               
+                                <img src="{{ order.customer_image }}" alt="{{ order.customer_name }}" width="32" height="32" 
+                                     onerror="this.onerror=null; this.src=DEFAULT_IMAGE;">
+                                <span>{{ order.customer_name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ order.products_count }} article{{ order.products_count|pluralize }}</td>
+                        <td>{{ order.total|floatformat:2 }} €</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if order.status == 'pending' %}pending
+                                {% elif order.status == 'processing' %}processing
+                                {% elif order.status == 'shipped' %}shipped
+                                {% elif order.status == 'delivered' %}completed
+                                {% elif order.status == 'cancelled' %}cancelled{% endif %}">
+                                {% if order.status == 'pending' %}En attente
+                                {% elif order.status == 'processing' %}En cours
+                                {% elif order.status == 'shipped' %}Expédiée
+                                {% elif order.status == 'delivered' %}Livrée
+                                {% elif order.status == 'cancelled' %}Annulée{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ order.date }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="" title="Voir"><i class="fas fa-eye"></i></a>
+                                <a href="" title="Modifier"><i class="fas fa-edit"></i></a>
+                                <button data-order-id="{{ order.id }}" class="delete-order-btn" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Aucune commande récente</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div> -->
+    <div style="height: 80px;"></div>
+</div>
+
+<!-- Transmit data to JavaScript -->
+<script>
+    // S'assurer que chartData existe toujours, même si les données sont invalides
+    var chartData;
+    try {
+        chartData = {{ chart_data|safe }};
+    } catch (e) {
+        console.error("Erreur lors du parsing des données :", e);
+        chartData = {
+            dailySales: [],
+            weeklySales: [],
+            monthlySales: [],
+            categories: []
+        };
+    }
+</script>
+<!-- Assurez-vous que Chart.js est chargé avant votre script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="{% static 'js/dashboard/dashboard-overview.js' %}"></script>
+
+{% endblock %}

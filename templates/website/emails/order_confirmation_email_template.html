@@ -1,0 +1,246 @@
+<!-- emails/order_confirmation.html -->
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de commande</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .logo {
+            max-width: 180px;
+            height: auto;
+        }
+
+        .content {
+            padding: 20px 0;
+        }
+
+        .order-number {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .order-details {
+            margin: 20px 0;
+        }
+
+        .order-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .order-items th {
+            background-color: #4a4a4a;
+            color: white;
+            text-align: left;
+            padding: 10px;
+        }
+
+        .order-items td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .order-total {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+
+        .final-total {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #eee;
+        }
+
+        .shipping-info {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+
+        .social-icons {
+            margin: 15px 0;
+        }
+
+        .social-icons a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #666;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ site_url }}{% static 'images/logo.png' %}" alt="E-Shop" class="logo">
+            <h1>Confirmation de Commande</h1>
+            <p>Bonjour {{ user.first_name }},</p>
+            <p>Nous vous remercions pour votre commande sur E-Shop!</p>
+        </div>
+
+        <div class="content">
+            <div class="order-number">
+                Commande N° {{ order.order_number }}
+            </div>
+
+            <p>Votre commande a été confirmée et est en cours de traitement. Voici un récapitulatif :</p>
+
+            <div class="order-details">
+                <h2>Détails de la commande</h2>
+                <table class="order-items">
+                    <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>Prix</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>
+                                {{ item.product_name }}
+                                <!-- Suite du template emails/order_confirmation.html -->
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.total_price }} €</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="order-total">
+                    <div class="total-row">
+                        <span>Sous-total:</span>
+                        <span>{{ order.subtotal }} €</span>
+                    </div>
+                    <div class="total-row">
+                        <span>TVA (20%):</span>
+                        <span>{{ order.tax_amount }} €</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Frais de livraison:</span>
+                        <span>{% if order.shipping_cost == 0 %}Gratuit{% else %}{{ order.shipping_cost }} €{% endif
+                            %}</span>
+                    </div>
+                    <div class="total-row final-total">
+                        <span>Total:</span>
+                        <span>{{ order.total_amount }} €</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shipping-info">
+                <h3>Adresse de livraison</h3>
+                <p>{{ order.shipping_address_text|linebreaksbr }}</p>
+
+                <h3>Date de livraison estimée</h3>
+                <p>{{ order.estimated_delivery_date|date:"l j F Y"|capfirst }}</p>
+
+                <h3>Mode de paiement</h3>
+                <p>
+                    {% if order.payment_method == 'card' %}
+                    Carte bancaire
+                    {% elif order.payment_method == 'delivery' %}
+                    Paiement à la livraison
+                    {% else %}
+                    {{ order.get_payment_method_display }}
+                    {% endif %}
+                </p>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ site_url }}{% url 'client_order_detail' order.id %}" class="cta-button">Voir le détail de ma
+                    commande</a>
+            </div>
+
+            <p style="margin-top: 20px;">
+                Vous trouverez ci-joint votre facture au format PDF. Si vous avez des questions concernant votre
+                commande, n'hésitez pas à contacter notre service client.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+            <div class="social-icons">
+                <a href="#">Facebook</a> |
+                <a href="#">Instagram</a> |
+                <a href="#">Twitter</a>
+            </div>
+            <p>
+                &copy; {% now "Y" %} E-Shop SAS. Tous droits réservés.<br>
+                123 Rue du Commerce, 75001 Paris
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

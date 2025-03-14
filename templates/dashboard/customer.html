@@ -1,0 +1,186 @@
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+
+{% block title %}E-Shop - Clients{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard/customers.css' %}">
+
+<div class="content-wrapper">
+    <!-- En-tête -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Clients</h1>
+            <p class="text-muted">Consultez la liste de vos clients</p>
+        </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Barre d'outils -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" placeholder="Rechercher un client..." value="{{ request.GET.search }}">
+            </div>
+            <div class="filter-group">
+                <select name="status" class="filter-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Actif</option>
+                    <option value="blocked" {% if selected_status == 'blocked' %}selected{% endif %}>Bloqué</option>
+                </select>
+            </div>
+        </div>
+        <div class="toolbar-right">
+            <p style="font-weight: bold;">{{ customer_count }} Client(s)</p>
+        </div>
+    </div>
+
+    <!-- Tableau des clients -->
+    <div class="customers-table-wrapper">
+        <table class="customers-table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Contact</th>
+                    <th>Commandes</th>
+                    <th>Total dépensé</th>
+                    <th>Dernière commande</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>
+                        <div class="customer-info">
+                            {% if customer.profile_picture %}
+                                <img src="{{ customer.profile_picture.url }}" alt="{{ customer.get_full_name }}">
+                            {% else %}
+                                <img src="{% static 'img/dashboard/default-avatar.png' %}" alt="Avatar par défaut">
+                            {% endif %}
+                            <div>
+                                <h4>{{ customer.get_full_name }}</h4>
+                                <span class="customer-id">#{{ customer.id }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <span>{{ customer.email }}</span>
+                            <span>{{ customer.phone|default:"-" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="orders-info">
+                            <strong>{{ customer.total_orders }}</strong>
+                            <span class="text-muted">commandes</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="spending-info">
+                            <strong>{{ customer.total_spent }} €</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="last-order">
+                            {% if customer.last_order_date %}
+                                <span>{{ customer.last_order_date|date:"d/m/Y" }}</span>
+                            {% else %}
+                                <span>Aucune commande</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span id="customer-status-{{ customer.id }}" class="status-badge {% if customer.account_status %}active{% else %}blocked{% endif %}">
+                            {% if customer.account_status %}Actif{% else %}Bloqué{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="action-btn view-customer"
+                                data-id="{{ customer.id }}"
+                                data-name="{{ customer.get_full_name }}"
+                                data-email="{{ customer.email }}"
+                                data-phone="{{ customer.phone|default:'-' }}"
+                                data-gender="{{ customer.gender|default:'-' }}"
+                                data-birth="{{ customer.birth_date|date:'d/m/Y'|default:'-' }}"
+                                data-orders="{{ customer.total_orders }}"
+                                data-spent="{{ customer.total_spent }}"
+                                data-lastorder="{% if customer.last_order_date %}{{ customer.last_order_date|date:'d/m/Y' }}{% else %}Aucune commande{% endif %}"
+                                data-joined="{{ customer.date_joined|date:'d/m/Y' }}"
+                                data-status="{% if customer.account_status %}Actif{% else %}Bloqué{% endif %}"
+                                data-picture="{% if customer.profile_picture %}{{ customer.profile_picture.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+
+
+                            <form method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="customer_id" value="{{ customer.id }}">
+                                {% if customer.account_status %}
+                                    <input type="hidden" name="action" value="block">
+                                    <button type="submit" class="action-btn" title="Bloquer">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                {% else %}
+                                    <input type="hidden" name="action" value="unblock">
+                                    <button type="submit" class="action-btn" title="Débloquer">
+                                        <i class="fas fa-unlock"></i>
+                                    </button>
+                                {% endif %}
+                            </form>
+
+                            
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucun client trouvé.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL DETAILS CLIENT -->
+<div id="customerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Détails du client</h2>
+        <div class="customer-details">
+            <img id="customerProfilePic" src="{% static 'img/dashboard/default-avatar.png' %}" alt="Photo de profil">
+            <h3 id="customerFullName"></h3>
+            <p><strong>Email :</strong> <span id="customerEmail"></span></p>
+            <p><strong>Téléphone :</strong> <span id="customerPhone"></span></p>
+            <p><strong>Genre :</strong> <span id="customerGender"></span></p>
+            <p><strong>Date de naissance :</strong> <span id="customerBirthDate"></span></p>
+            <p><strong>Total commandes :</strong> <span id="customerOrders"></span></p>
+            <p><strong>Total dépensé :</strong> <span id="customerSpent"></span></p>
+            <p><strong>Dernière commande :</strong> <span id="customerLastOrder"></span></p>
+            <p><strong>Date d'inscription :</strong> <span id="customerJoinDate"></span></p>
+            <p><strong>Statut :</strong> <span id="customerStatus" class="status-badge"></span></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const defaultAvatar = "{% static 'img/dashboard/default-avatar.png' %}";
+</script>
+
+
+<script src="{% static 'js/dashboard/customers.js' %}"></script>
+{% endblock %}

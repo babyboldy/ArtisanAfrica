@@ -1,0 +1,190 @@
+{% extends 'base/dashboard/base.html' %}
+{% load static %}
+
+{% block title %}E-Shop - Catégories{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/dashboard/categories.css' %}">
+
+
+
+<div class="content-wrapper">
+    <!-- En-tête -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1>Catégories</h1>
+            <p class="text-muted">Gérez les catégories de vos produits</p>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" id="addCategoryBtn">
+                <i class="fas fa-plus"></i> Ajouter une catégorie
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Barre d'outils -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <form method="GET" action="{% url 'admin_categories' %}" class="search-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Rechercher une catégorie..." value="{{ request.GET.search }}">
+                </div>
+            </form>
+
+            
+
+            <!-- <div class="filter-group">
+                <select name="status" class="filter-select">
+                    <option value="">Tous les statuts</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div> -->
+        </div>
+
+        <div class="toolbar-right">
+            <p style="font-weight: bold;">{{ category_count }} Catégorie(s)</p>
+        </div>
+    </div>
+
+    <!-- Liste des catégories -->
+    <div class="categories-grid">
+        {% for category in categories %}
+        <div class="category-card">
+            <div class="category-header">
+                <div class="category-icon" style="background-color: {{ category.color }};">
+                    <i class="fas {{ category.icon }}"></i>
+                </div>
+                <div class="category-actions">
+                    <button class="action-btn edit-category"
+                        data-id="{{ category.id }}"
+                        data-name="{{ category.name }}"
+                        data-description="{{ category.description }}"
+                        data-icon="{{ category.icon }}"
+                        data-color="{{ category.color }}"
+                        data-image="{{ category.image.url|default:'' }}"
+                        data-featured="{{ category.featured }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-category" data-id="{{ category.id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="category-content">
+                <h3>{{ category.name }}</h3>
+                <p>{{ category.description }}</p>
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="category-image">
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>Aucune catégorie trouvée.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Ajout/Modification Catégorie -->
+<div class="modal" id="categoryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Ajouter une catégorie</h2>
+            <button class="close-modal2">×</button>
+        </div>
+        <div class="modal-body">
+            <form method="post" action="{% url 'add_category' %}" enctype="multipart/form-data" id="categoryForm">
+                {% csrf_token %}
+                <input type="hidden" id="categoryId" name="category_id">
+
+                <div class="form-group">
+                    <label for="categoryName">Nom</label>
+                    <input type="text" id="categoryName" name="name" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryDescription">Description</label>
+                    <textarea id="categoryDescription" name="description" class="form-input" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryIcon">Icône</label>
+                    <div class="icon-grid" id="iconGrid">
+                        <!-- Icônes seront ajoutées dynamiquement par JavaScript -->
+                    </div>
+                    <input type="hidden" id="categoryIcon" name="icon" value="fa-box">
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryColor">Couleur</label>
+                    <div class="color-field">
+                        <input type="color" id="categoryColor" name="color" value="#6b21a8">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryImage">Image</label>
+                    <input type="file" id="categoryImage" name="image" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="categoryFeatured" name="featured">
+                        <span>Mettre en avant</span>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline close-modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span class="button-text">Enregistrer</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Suppression Catégorie -->
+<div class="modal" id="deleteCategoryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Confirmer la suppression</h2>
+            <button type="button" class="close-modal2">×</button>
+        </div>
+        <div class="modal-body">
+            <p>Voulez-vous vraiment supprimer cette catégorie ?</p>
+            <p class="text-muted">Cette action est irréversible.</p>
+        </div>
+        <div class="modal-footer">
+            <form method="POST" action="{% url 'delete_category' %}" id="deleteCategoryForm">
+                {% csrf_token %}
+                <input type="hidden" id="deleteCategoryId" name="category_id">
+                <button type="button" class="btn btn-outline close-modal">Annuler</button>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Supprimer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/dashboard/categories.js' %}"></script>
+{% endblock %}

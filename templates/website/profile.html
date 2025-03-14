@@ -1,0 +1,390 @@
+<!-- profile.html -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}E-Shop - Produits{% endblock %}
+{% block content %}
+
+
+<link rel="stylesheet" href="{% static 'css/website/profile.css' %}">
+
+
+
+
+<div class="main-container profile-page">
+    <div class="profile-header">
+        <h1>Mon compte</h1>
+        <p>Gérez vos informations personnelles et préférences</p>
+    </div>
+
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+            <button type="button" class="close-alert">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="profile-wrapper">
+        <!-- Menu latéral -->
+        <div class="profile-sidebar">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Photo de profil">
+                    {% else %}
+                    <img src="{% static 'images/default-avatar.png' %}" alt="Photo de profil">
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h3>{{ user.get_full_name }}</h3>
+                    <p>{{ user.email }}</p>
+                    <span class="member-since">Membre depuis {{ user.date_joined|date:"d M Y" }}</span>
+                </div>
+            </div>
+
+            <div class="profile-nav">
+                <a href="#personal-info" class="nav-item active" data-section="personal-info">
+                    <i class="fas fa-user"></i> Informations personnelles
+                </a>
+                <a href="#addresses" class="nav-item" data-section="addresses">
+                    <i class="fas fa-map-marker-alt"></i> Mes adresses
+                </a>
+                <a href="#orders" class="nav-item" data-section="orders">
+                    <i class="fas fa-shopping-bag"></i> Mes commandes
+                </a>
+                <a href="#password" class="nav-item" data-section="password">
+                    <i class="fas fa-lock"></i> Changer mon mot de passe
+                </a>
+                <a href="{% url 'logout' %}" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="profile-content">
+            <!-- Informations personnelles -->
+            <section id="personal-info" class="profile-section active">
+                <div class="section-header">
+                    <h2>Informations personnelles</h2>
+                    <p>Modifiez vos informations personnelles</p>
+                </div>
+
+                <form method="POST" action="{% url 'client_profile' %}" enctype="multipart/form-data" class="profile-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_info">
+
+                    <div class="avatar-upload">
+                        <div class="avatar-preview">
+                            {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Photo de profil" id="profileImagePreview">
+                            {% else %}
+                            <img src="{% static 'images/default-avatar.png' %}" alt="Photo de profil" id="profileImagePreview">
+                            {% endif %}
+                        </div>
+                        <div class="avatar-edit">
+                            <input type="file" id="profileImageUpload" name="profile_picture" accept="image/*">
+                            <label for="profileImageUpload">Changer la photo</label>
+                            <button type="button" id="removePhoto" class="btn-outline">Supprimer</button>
+                            <input type="hidden" name="remove_photo" id="removePhotoInput" value="false">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="first_name">Prénom</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Nom</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Téléphone</label>
+                            <input type="tel" id="phone" name="phone" value="{{ user.phone|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="birth_date">Date de naissance</label>
+                            <input type="date" id="birth_date" name="birth_date" value="{{ user.birth_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Genre</label>
+                            <select id="gender" name="gender">
+                                <option value="">Non spécifié</option>
+                                {% for key, value in gender_choices %}
+                                <option value="{{ key }}" {% if user.gender == key %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Adresses -->
+            <section id="addresses" class="profile-section">
+                <div class="section-header">
+                    <h2>Mes adresses</h2>
+                    <p>Gérez vos adresses de livraison et de facturation</p>
+                </div>
+
+                <div class="addresses-container">
+                    {% if user_addresses %}
+                        <div class="addresses-grid">
+                            {% for address in user_addresses %}
+                            <div class="address-card">
+                                <div class="address-header">
+                                    <h3>{{ address.get_address_type_display }}</h3>
+                                    {% if address.is_default %}
+                                    <span class="badge">Par défaut</span>
+                                    {% endif %}
+                                </div>
+                                <div class="address-content">
+                                    <p><strong>{{ user.get_full_name }}</strong></p>
+                                    <p>{{ address.street_address }}</p>
+                                    {% if address.apartment %}
+                                    <p>{{ address.apartment }}</p>
+                                    {% endif %}
+                                    <p>{{ address.postal_code }} {{ address.city }}</p>
+                                    <p>{{ address.country }}</p>
+                                </div>
+                                <div class="address-actions">
+                                    <button class="btn-edit-address" data-id="{{ address.id }}">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </button>
+                                    <button class="btn-delete-address" data-id="{{ address.id }}">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h3>Aucune adresse enregistrée</h3>
+                            <p>Vous n'avez pas encore ajouté d'adresse. Ajoutez une adresse pour faciliter vos achats.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="add-address-container">
+                        <button id="addAddressBtn" class="btn-primary">
+                            <i class="fas fa-plus"></i> Ajouter une adresse
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Commandes -->
+            <section id="orders" class="profile-section">
+                <div class="section-header">
+                    <h2>Mes commandes</h2>
+                    <p>Consultez l'historique de vos commandes</p>
+                </div>
+
+                {% if orders %}
+                    <div class="orders-list">
+                        {% for order in orders %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <h3>Commande #{{ order.order_number }}</h3>
+                                    <span class="order-date">{{ order.created_at|date:"d M Y" }}</span>
+                                </div>
+                                <div class="order-status {{ order.status|lower }}">
+                                    {{ order.get_status_display }}
+                                </div>
+                            </div>
+                            <div class="order-summary">
+                                <div class="order-items">
+                                    <span>{{ order.items.count }} article(s)</span>
+                                </div>
+                                <div class="order-total">
+                                    Total: {{ order.total_amount }} €
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <a href="{% url 'client_order_detail' order.id %}" class="btn-outline">
+                                    <i class="fas fa-eye"></i> Voir les détails
+                                </a>
+                                {% if order.status == 'delivered' %}
+                                <a href="{% url 'client_order_invoice' order.id %}" class="btn-outline" target="_blank">
+                                    <i class="fas fa-file-invoice"></i> Facture
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-bag"></i>
+                        <h3>Aucune commande</h3>
+                        <p>Vous n'avez pas encore passé de commande.</p>
+                        <a href="{% url 'products' %}" class="btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Commencer vos achats
+                        </a>
+                    </div>
+                {% endif %}
+            </section>
+
+            <!-- Changement de mot de passe -->
+            <section id="password" class="profile-section">
+                <div class="section-header">
+                    <h2>Changer mon mot de passe</h2>
+                    <p>Modifiez votre mot de passe pour sécuriser votre compte</p>
+                </div>
+
+                <form method="POST" action="{% url 'client_profile' %}" class="password-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="change_password">
+
+                    <div class="form-group">
+                        <label for="current_password">Mot de passe actuel</label>
+                        <div class="password-input">
+                            <input type="password" id="current_password" name="current_password" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new_password">Nouveau mot de passe</label>
+                        <div class="password-input">
+                            <input type="password" id="new_password" name="new_password" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirmer le nouveau mot de passe</label>
+                        <div class="password-input">
+                            <input type="password" id="confirm_password" name="confirm_password" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="password-requirements">
+                        <h4>Votre mot de passe doit :</h4>
+                        <div class="requirement" data-requirement="length">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins 8 caractères
+                        </div>
+                        <div class="requirement" data-requirement="uppercase">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins une lettre majuscule
+                        </div>
+                        <div class="requirement" data-requirement="lowercase">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins une lettre minuscule
+                        </div>
+                        <div class="requirement" data-requirement="number">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins un chiffre
+                        </div>
+                        <div class="requirement" data-requirement="special">
+                            <i class="fas fa-check-circle"></i>
+                            Contenir au moins un caractère spécial
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-key"></i> Changer mon mot de passe
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Modal d'ajout/modification d'adresse -->
+<div class="modal" id="addressModal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="addressModalTitle">Ajouter une adresse</h2>
+        
+        <form id="addressForm" method="POST" action="{% url 'client_profile_address' %}">
+            {% csrf_token %}
+            <input type="hidden" name="address_id" id="addressId" value="">
+            
+            <div class="form-group">
+                <label for="address_type">Type d'adresse</label>
+                <select id="address_type" name="address_type" required>
+                    {% for key, value in address_types %}
+                    <option value="{{ key }}">{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="street_address">Adresse</label>
+                <input type="text" id="street_address" name="street_address" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="apartment">Appartement/Suite (optionnel)</label>
+                <input type="text" id="apartment" name="apartment">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="postal_code">Code postal</label>
+                    <input type="text" id="postal_code" name="postal_code" required>
+                </div>
+                <div class="form-group">
+                    <label for="city">Ville</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="country">Pays</label>
+                <input type="text" id="country" name="country" required>
+            </div>
+            
+            <div class="form-check">
+                <input type="checkbox" id="is_default" name="is_default">
+                <label for="is_default">Définir comme adresse par défaut</label>
+            </div>
+            
+            <div class="form-actions modal-actions">
+                <button type="button" class="btn-outline close-modal">Annuler</button>
+                <button type="submit" class="btn-primary">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script src="{% static 'js/website/profile.js' %}"></script>
+
+
+{% endblock %}
+
