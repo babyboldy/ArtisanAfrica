@@ -1,108 +1,371 @@
+// order.js - Gestion des commandes du dashboard
+
 document.addEventListener('DOMContentLoaded', function () {
-    // ==========================
-    // 1. Configuration Globale
-    // ==========================
+    // Configuration globale
     const config = {
         rowsPerPage: 10,
         debounceDelay: 300,
+        notificationDuration: 3000,
         monthMap: {
             'janv': 0, 'févr': 1, 'mars': 2, 'avr': 3, 'mai': 4,
             'juin': 5, 'juil': 6, 'août': 7, 'sept': 8, 'oct': 9,
             'nov': 10, 'déc': 11
-        },
-        notificationDuration: 3000
+        }
     };
 
-    // ==========================
-    // 2. Système de Notifications
-    // ==========================
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${type === 'success' ? 'check-circle' :
-                type === 'error' ? 'times-circle' :
-                    type === 'warning' ? 'exclamation-triangle' :
-                        'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-            <button class="close-notification">&times;</button>
-        `;
+    // Éléments DOM
+    const elements = {
+        selectAll: document.getElementById('selectAll'),
+        orderCheckboxes: document.querySelectorAll('.order-select'),
+        batchActions: document.querySelector('.batch-actions'),
+        selectedCount: document.querySelector('.selected-count'),
+        statusFilter: document.getElementById('statusFilter'),
+        dateFilter: document.getElementById('dateFilter'),
+        searchOrder: document.getElementById('searchOrder'),
+        orderDetailModal: document.getElementById('orderDetailModal'),
+        batchUpdateModal: document.getElementById('batchUpdateModal'),
+        batchUpdateButton: document.getElementById('batchUpdate'),
+        confirmBatchUpdateButton: document.getElementById('confirmBatchUpdate'),
+        exportOrdersBtn: document.getElementById('exportOrders'),
+        batchExportBtn: document.getElementById('batchExport'),
+        modals: document.querySelectorAll('.modal'),
+        closeModalBtns: document.querySelectorAll('.close-modal')
+    };
 
-        document.body.appendChild(notification);
-
-        // Animation d'entrée
-        requestAnimationFrame(() => {
-            notification.style.transform = 'translateY(0)';
-            notification.style.opacity = '1';
-        });
-
-        // Fermeture automatique
-        const timeout = setTimeout(() => {
-            closeNotification(notification);
-        }, config.notificationDuration);
-
-        // Bouton de fermeture
-        notification.querySelector('.close-notification').addEventListener('click', () => {
-            clearTimeout(timeout);
-            closeNotification(notification);
-        });
-    }
-
-    function closeNotification(notification) {
-        notification.style.transform = 'translateY(-100%)';
-        notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 300);
-    }
-
-    // ==========================
-    // 3. Système d'Export
-    // ==========================
-    async function exportOrders(format, selectedIds = null) {
-        try {
-            showNotification('Export en cours...', 'info');
-
-            let url = `/dashboard/orders/export/?format=${format}`;
-            if (selectedIds && selectedIds.length > 0) {
-                url += `&ids=${selectedIds.join(',')}`;
-            }
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+    // Initialisation
+    initCheckboxes();
+    initFilters();
+    initModals();
+    initActionButtons();
+    updatePagination();
+    
+    // Système de sélection des commandes
+    function initCheckboxes() {
+        if (elements.selectAll) {
+            elements.selectAll.addEventListener('change', function (e) {
+                elements.orderCheckboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+                updateBatchActionsVisibility();
             });
+        }
 
-            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+        elements.orderCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                updateSelectAllState();
+                updateBatchActionsVisibility();
+            });
+        });
+    }
 
-            const blob = await response.blob();
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const filename = `commandes_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : format}`;
+    function updateSelectAllState() {
+        if (!elements.selectAll) return;
+        
+        const allChecked = Array.from(elements.orderCheckboxes).every(c => c.checked);
+        const someChecked = Array.from(elements.orderCheckboxes).some(c => c.checked);
+        
+        elements.selectAll.checked = allChecked;
+        elements.selectAll.indeterminate = someChecked && !allChecked;
+    }
 
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(downloadUrl);
+    function updateBatchActionsVisibility() {
+        if (!elements.batchActions || !elements.selectedCount) return;
+        
+        const checkedCount = document.querySelectorAll('.order-select:checked').length;
+        elements.batchActions.style.display = checkedCount > 0 ? 'flex' : 'none';
+        elements.selectedCount.textContent = `${checkedCount} sélectionné(s)`;
+    }
 
-            showNotification('Export réussi !', 'success');
-        } catch (error) {
-            console.error('Erreur lors de l\'export:', error);
-            showNotification('Erreur lors de l\'export', 'error');
+    // Système de filtrage des commandes
+    function initFilters() {
+        if (!elements.statusFilter && !elements.dateFilter && !elements.searchOrder) return;
+
+        // Appliquer les filtres sur changement
+        if (elements.statusFilter) {
+            elements.statusFilter.addEventListener('change', applyFilters);
+        }
+        
+        if (elements.dateFilter) {
+            elements.dateFilter.addEventListener('change', applyFilters);
+        }
+        
+        if (elements.searchOrder) {
+            elements.searchOrder.addEventListener('input', debounce(applyFilters, config.debounceDelay));
         }
     }
 
+    function applyFilters() {
+        const filters = {
+            status: elements.statusFilter?.value.toLowerCase() || '',
+            date: elements.dateFilter?.value.toLowerCase() || '',
+            search: elements.searchOrder?.value.toLowerCase() || ''
+        };
+
+        let visibleCount = 0;
+        
+        document.querySelectorAll('.orders-table tbody tr').forEach(row => {
+            // Ignorer la ligne d'état vide si elle existe
+            if (row.classList.contains('empty-state')) return;
+            
+            const statusCell = row.querySelector('.status-badge');
+            const dateCell = row.querySelector('td:nth-child(4) span:first-child');
+            const orderIdCell = row.querySelector('.order-id');
+            const customerCell = row.querySelector('.customer-info h4');
+
+            // Vérifier si la ligne correspond aux critères
+            const matchesStatus = !filters.status || 
+                (statusCell?.textContent.toLowerCase() || '').includes(filters.status);
+            
+            const matchesDate = !filters.date || 
+                (dateCell && filterByDate(dateCell, filters.date));
+            
+            const matchesSearch = !filters.search || 
+                (orderIdCell?.textContent.toLowerCase() || '').includes(filters.search) || 
+                (customerCell?.textContent.toLowerCase() || '').includes(filters.search);
+
+            // Afficher ou masquer la ligne
+            const isVisible = matchesStatus && matchesDate && matchesSearch;
+            row.style.display = isVisible ? '' : 'none';
+            
+            if (isVisible) visibleCount++;
+        });
+
+        // Afficher un message si aucun résultat
+        updateEmptyState(visibleCount === 0);
+        
+        // Mettre à jour la pagination
+        updatePagination();
+    }
+
+    function filterByDate(dateCell, filterValue) {
+        const dateText = dateCell.textContent.trim();
+        const rowDate = parseFrenchDate(dateText);
+        if (!rowDate) return true; // Si la date ne peut pas être analysée, on l'inclut
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        switch (filterValue) {
+            case 'today':
+                return rowDate.toDateString() === today.toDateString();
+                
+            case 'week':
+                const weekAgo = new Date(today);
+                weekAgo.setDate(today.getDate() - 7);
+                return rowDate >= weekAgo;
+                
+            case 'month':
+                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                return rowDate >= monthStart;
+                
+            case 'custom':
+                // Implémentation ultérieure pour date personnalisée
+                return true;
+                
+            default:
+                return true;
+        }
+    }
+
+    function parseFrenchDate(dateStr) {
+        // Format attendu: "10 Fév 2024" ou similaire
+        const parts = dateStr.split(' ');
+        if (parts.length < 3) return null;
+        
+        const day = parseInt(parts[0]);
+        const monthStr = parts[1].toLowerCase();
+        const year = parseInt(parts[2]);
+        
+        // Trouver le mois dans le mapping
+        let month = null;
+        for (const [key, value] of Object.entries(config.monthMap)) {
+            if (monthStr.startsWith(key)) {
+                month = value;
+                break;
+            }
+        }
+        
+        return month !== null ? new Date(year, month, day) : null;
+    }
+
+    function updateEmptyState(isEmpty) {
+        const tbody = document.querySelector('.orders-table tbody');
+        if (!tbody) return;
+        
+        let emptyState = tbody.querySelector('.empty-state');
+        
+        if (isEmpty) {
+            if (!emptyState) {
+                emptyState = document.createElement('tr');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `
+                    <td colspan="8">
+                        <div class="empty-state-content">
+                            <i class="fas fa-search"></i>
+                            <p>Aucune commande ne correspond à vos critères</p>
+                            <button class="btn btn-outline btn-sm" id="resetFiltersBtn">
+                                <i class="fas fa-undo"></i> Réinitialiser les filtres
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(emptyState);
+                
+                // Ajouter l'événement pour réinitialiser les filtres
+                const resetBtn = document.getElementById('resetFiltersBtn');
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', resetFilters);
+                }
+            }
+        } else if (emptyState) {
+            emptyState.remove();
+        }
+    }
+
+    // Gestion des modals et actions
+    function initModals() {
+        // Ouvrir le modal de détails
+        document.querySelectorAll('.action-btn[title="Voir"]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.closest('tr').querySelector('.order-id')?.textContent;
+                openOrderDetailModal(orderId);
+            });
+        });
+
+        // Ouvrir le modal de mise à jour groupée
+        if (elements.batchUpdateButton && elements.batchUpdateModal) {
+            elements.batchUpdateButton.addEventListener('click', function() {
+                const selectedOrders = getSelectedOrders();
+                if (selectedOrders.length === 0) {
+                    showToast('Veuillez sélectionner au moins une commande', 'warning');
+                    return;
+                }
+                
+                openModal(elements.batchUpdateModal);
+            });
+        }
+
+        // Confirmer la mise à jour groupée
+        if (elements.confirmBatchUpdateButton) {
+            elements.confirmBatchUpdateButton.addEventListener('click', handleBatchUpdate);
+        }
+
+        // Fermer les modals
+        elements.closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                if (modal) closeModal(modal);
+            });
+        });
+
+        // Fermer les modals en cliquant en dehors
+        elements.modals.forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) closeModal(this);
+            });
+        });
+        
+        // Fermer les modals avec Echap
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                elements.modals.forEach(modal => {
+                    if (modal.classList.contains('active')) {
+                        closeModal(modal);
+                    }
+                });
+            }
+        });
+    }
+
+    function initActionButtons() {
+        // Bouton d'export de commandes
+        if (elements.exportOrdersBtn) {
+            elements.exportOrdersBtn.addEventListener('click', () => showExportModal());
+        }
+
+        // Bouton d'export des commandes sélectionnées
+        if (elements.batchExportBtn) {
+            elements.batchExportBtn.addEventListener('click', () => {
+                const selectedIds = getSelectedOrders();
+                if (selectedIds.length === 0) {
+                    showToast('Veuillez sélectionner au moins une commande', 'warning');
+                    return;
+                }
+                showExportModal(selectedIds);
+            });
+        }
+
+        // Boutons d'actions sur chaque ligne
+        document.querySelectorAll('.table-actions .action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.getAttribute('title') === 'Voir') return; // Déjà géré ailleurs
+                
+                const action = this.getAttribute('title')?.toLowerCase();
+                const row = this.closest('tr');
+                const orderId = row.querySelector('.order-id')?.textContent;
+                
+                if (!action || !orderId) return;
+                
+                switch (action) {
+                    case 'modifier':
+                        // Rediriger vers la page d'édition ou ouvrir un modal
+                        showToast(`Modification de la commande ${orderId}`, 'info');
+                        break;
+                        
+                    case 'supprimer':
+                        if (confirm(`Voulez-vous vraiment supprimer la commande ${orderId} ?`)) {
+                            // Appel AJAX pour supprimer la commande
+                            showToast(`Suppression de la commande ${orderId}`, 'success');
+                            row.remove();
+                        }
+                        break;
+                        
+                    default:
+                        // Actions supplémentaires
+                        showToast(`Action ${action} sur la commande ${orderId}`, 'info');
+                        break;
+                }
+            });
+        });
+    }
+
+    // Fonctions pour les modals
+    function openOrderDetailModal(orderId) {
+        if (!elements.orderDetailModal) return;
+
+        // Mise à jour du titre
+        const modalTitle = elements.orderDetailModal.querySelector('.modal-header h2');
+        if (modalTitle) modalTitle.textContent = `Détails de la commande ${orderId}`;
+
+        // Ici, on pourrait charger les détails de la commande via AJAX
+        // Pour l'instant, on utilise les données statiques déjà dans le modal
+        
+        openModal(elements.orderDetailModal);
+    }
+
+    function openModal(modal) {
+        if (!modal) return;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modal) {
+        if (!modal) return;
+        
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Gestion de l'export
     function showExportModal(selectedIds = null) {
+        // Créer dynamiquement la modal d'export
         const modal = document.createElement('div');
         modal.className = 'modal export-modal';
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Exporter les commandes</h2>
+                    <h2>${selectedIds ? 'Exporter les commandes sélectionnées' : 'Exporter toutes les commandes'}</h2>
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -129,505 +392,127 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.body.appendChild(modal);
         setTimeout(() => modal.classList.add('active'), 10);
+        document.body.style.overflow = 'hidden';
 
-        modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
+        // Fermeture de la modal
+        const closeBtn = modal.querySelector('.close-modal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+                document.body.style.overflow = '';
+            });
+        }
+
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+                document.body.style.overflow = '';
+            }
         });
 
+        // Gestion de l'export
         modal.querySelectorAll('.export-options button').forEach(btn => {
             btn.addEventListener('click', () => {
-                exportOrders(btn.dataset.format, selectedIds);
-                modal.remove();
+                const format = btn.dataset.format;
+                exportOrders(format, selectedIds);
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+                document.body.style.overflow = '';
             });
         });
     }
 
-    // ==========================
-    // 4. Sélection et Actions Groupées
-    // ==========================
-    const selectAll = document.getElementById('selectAll');
-    const orderCheckboxes = document.querySelectorAll('.order-select');
-    const batchActions = document.querySelector('.batch-actions');
-    const selectedCount = document.querySelector('.selected-count');
+    function exportOrders(format, selectedIds = null) {
+        showToast(`Export des commandes en ${format.toUpperCase()} en cours...`, 'info');
 
-    function updateBatchActionsVisibility() {
-        const checkedCount = document.querySelectorAll('.order-select:checked').length;
-        if (batchActions) {
-            batchActions.style.display = checkedCount > 0 ? 'flex' : 'none';
-            selectedCount.textContent = `${checkedCount} sélectionné(s)`;
-        }
+        // Simulation d'export (à remplacer par un vrai appel AJAX)
+        setTimeout(() => {
+            showToast(`${selectedIds ? selectedIds.length : 'Toutes les'} commandes exportées avec succès`, 'success');
+        }, 1500);
     }
 
-    if (selectAll) {
-        selectAll.addEventListener('change', function (e) {
-            orderCheckboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-            });
-            updateBatchActionsVisibility();
-        });
-    }
+    // Gestion des mises à jour groupées
+    function handleBatchUpdate() {
+        const selectedOrders = getSelectedOrders();
+        const batchStatus = document.getElementById('batchStatus')?.value;
+        const batchNote = document.getElementById('batchNote')?.value;
 
-    orderCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            const allChecked = Array.from(orderCheckboxes).every(c => c.checked);
-            const someChecked = Array.from(orderCheckboxes).some(c => c.checked);
-            if (selectAll) {
-                selectAll.checked = allChecked;
-                selectAll.indeterminate = someChecked && !allChecked;
-            }
-            updateBatchActionsVisibility();
-        });
-    });
-
-    // ==========================
-    // 5. Filtres Avancés
-    // ==========================
-    const statusFilter = document.getElementById('statusFilter');
-    const dateFilter = document.getElementById('dateFilter');
-    const searchOrder = document.getElementById('searchOrder');
-
-    function parseFrenchDate(dateStr) {
-        const parts = dateStr.trim().split(" ");
-        if (parts.length < 3) return null;
-
-        const day = parseInt(parts[0]);
-        const monthStr = parts[1].toLowerCase();
-        const year = parseInt(parts[2]);
-
-        let month = null;
-        for (const [key, value] of Object.entries(config.monthMap)) {
-            if (monthStr.startsWith(key)) {
-                month = value;
-                break;
-            }
+        if (!batchStatus) {
+            showToast('Veuillez sélectionner un statut', 'warning');
+            return;
         }
 
-        return month !== null ? new Date(year, month, day) : null;
-    }
+        showToast('Mise à jour en cours...', 'info');
 
-    function filterByDate(dateCell, filterValue) {
-        const rowDate = parseFrenchDate(dateCell.textContent);
-        if (!rowDate) return true;
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        switch (filterValue) {
-            case 'today':
-                return rowDate.toDateString() === today.toDateString();
-            case 'week':
-                const weekAgo = new Date(today);
-                weekAgo.setDate(today.getDate() - 7);
-                return rowDate >= weekAgo;
-            case 'month':
-                return rowDate.getMonth() === today.getMonth() &&
-                    rowDate.getFullYear() === today.getFullYear();
-            case 'custom':
-                // À implémenter : logique pour la sélection de date personnalisée
-                return true;
-            default:
-                return true;
-        }
-    }
-
-    function applyFilters() {
-        const filters = {
-            status: statusFilter?.value.toLowerCase() || '',
-            date: dateFilter?.value.toLowerCase() || '',
-            search: searchOrder?.value.toLowerCase() || ''
-        };
-
-        document.querySelectorAll('.orders-table tbody tr').forEach(row => {
-            const statusCell = row.querySelector('.status-badge');
-            const dateCell = row.querySelector('td:nth-child(4) span:first-child');
-            const orderIdCell = row.querySelector('.order-id');
-            const customerCell = row.querySelector('.customer-info h4');
-
-            const matchesStatus = !filters.status ||
-                (statusCell?.textContent.toLowerCase() || '').includes(filters.status);
-            const matchesDate = !filters.date ||
-                (dateCell && filterByDate(dateCell, filters.date));
-            const matchesSearch = !filters.search ||
-                (orderIdCell?.textContent.toLowerCase() || '').includes(filters.search) ||
-                (customerCell?.textContent.toLowerCase() || '').includes(filters.search);
-
-            row.style.display = (matchesStatus && matchesDate && matchesSearch) ? '' : 'none';
-        });
-
-        updatePagination();
-        updateEmptyState();
-    }
-
-    // Gestionnaires d'événements pour les filtres
-    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
-    if (dateFilter) dateFilter.addEventListener('change', applyFilters);
-    if (searchOrder) searchOrder.addEventListener('input', debounce(applyFilters, config.debounceDelay));
-
-    // ==========================
-    // 6. Gestion des Modals
-    // ==========================
-    function initializeModals() {
-        // Modal de détail des commandes
-        document.querySelectorAll('.action-btn[title="Voir"]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const orderId = btn.closest('tr').querySelector('.order-id').textContent;
-                const modal = document.getElementById('orderDetailModal');
-                if (modal) {
-                    modal.classList.add('active');
-                    modal.querySelector('.modal-header h2').textContent = `Détails de la commande ${orderId}`;
+        // Simulation de mise à jour (à remplacer par un vrai appel AJAX)
+        setTimeout(() => {
+            // Mettre à jour l'interface
+            document.querySelectorAll('.order-select:checked').forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const statusBadge = row.querySelector('.status-badge');
+                
+                if (statusBadge) {
+                    statusBadge.textContent = getStatusDisplayName(batchStatus);
+                    statusBadge.className = `status-badge ${batchStatus}`;
                 }
+                
+                // Décocher la case
+                checkbox.checked = false;
             });
-        });
-
-        // Modal de mise à jour groupée
-        const batchUpdateModal = document.getElementById('batchUpdateModal');
-        const batchUpdateButton = document.getElementById('batchUpdate');
-        const confirmBatchUpdateButton = document.getElementById('confirmBatchUpdate');
-
-        if (batchUpdateButton) {
-            batchUpdateButton.addEventListener('click', () => {
-                const selectedOrders = getSelectedOrders();
-                if (selectedOrders.length === 0) {
-                    showNotification('Veuillez sélectionner au moins une commande', 'warning');
-                    return;
-                }
-                if (batchUpdateModal) batchUpdateModal.classList.add('active');
-            });
-        }
-
-        if (confirmBatchUpdateButton) {
-            confirmBatchUpdateButton.addEventListener('click', () => handleBatchUpdate());
-        }
-
-        // Fermeture des modals
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', () => {
-                btn.closest('.modal').classList.remove('active');
-            });
-        });
-
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.remove('active');
-            });
-        });
+            
+            // Réinitialiser l'interface
+            if (elements.selectAll) elements.selectAll.checked = false;
+            if (elements.batchUpdateModal) closeModal(elements.batchUpdateModal);
+            updateBatchActionsVisibility();
+            
+            showToast('Commandes mises à jour avec succès', 'success');
+        }, 1500);
     }
 
-    // ==========================
-    // 7. Pagination
-    // ==========================
+    // Pagination
     function updatePagination() {
-        const visibleRows = getVisibleRows();
-        const totalPages = Math.ceil(visibleRows.length / config.rowsPerPage);
-
-        const paginationContainer = document.querySelector('.pagination-pages');
-        if (!paginationContainer) return;
-
-        paginationContainer.innerHTML = '';
-
-        // Première page
-        if (totalPages > 3) {
-            addPageButton(1);
-        }
-
-        // Pages actuelles
-        for (let i = 1; i <= Math.min(totalPages, 3); i++) {
-            addPageButton(i);
-        }
-
-        // Dernière page
-        if (totalPages > 3) {
-            addPageButton(totalPages);
-        }
-
-        // Initialiser avec la première page
-        if (visibleRows.length > 0) {
-            loadPage(1, visibleRows);
-        }
-
-        updatePaginationInfo(1, Math.min(config.rowsPerPage, visibleRows.length), visibleRows.length);
+        // À implémenter selon votre structure HTML
+        // Cette fonction doit gérer la pagination en fonction des lignes visibles
     }
 
-    function loadPage(page, visibleRows) {
-        const start = (page - 1) * config.rowsPerPage;
-        const end = start + config.rowsPerPage;
-
-        visibleRows.forEach((row, index) => {
-            row.style.display = (index >= start && index < end) ? '' : 'none';
-        });
-
-        document.querySelectorAll('.page-btn').forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.textContent) === page);
-        });
-
-        updatePaginationInfo(start + 1, Math.min(end, visibleRows.length), visibleRows.length);
-    }
-
-    function updatePaginationInfo(start, end, total) {
-        const info = document.querySelector('.pagination-info');
-        if (info) {
-            info.textContent = `Affichage de ${start}-${end} sur ${total} commandes`;
-        }
-    }
-
-    function addPageButton(pageNum) {
-        const paginationContainer = document.querySelector('.pagination-pages');
-        const button = document.createElement('button');
-        button.className = 'page-btn' + (pageNum === 1 ? ' active' : '');
-        button.textContent = pageNum;
-        button.addEventListener('click', () => {
-            loadPage(pageNum, getVisibleRows());
-        });
-        paginationContainer.appendChild(button);
-    }
-
-    // ==========================
-    // 8. Utilitaires
-    // ==========================
-    function getVisibleRows() {
-        return Array.from(document.querySelectorAll('.orders-table tbody tr'))
-            .filter(row => row.style.display !== 'none');
+    // Utilitaires
+    function resetFilters() {
+        if (elements.statusFilter) elements.statusFilter.value = '';
+        if (elements.dateFilter) elements.dateFilter.value = 'today';
+        if (elements.searchOrder) elements.searchOrder.value = '';
+        
+        applyFilters();
+        showToast('Filtres réinitialisés', 'info');
     }
 
     function getSelectedOrders() {
         return Array.from(document.querySelectorAll('.order-select:checked'))
-            .map(checkbox => checkbox.closest('tr').querySelector('.order-id').textContent.replace('#', ''))
+            .map(checkbox => {
+                const orderId = checkbox.closest('tr').querySelector('.order-id')?.textContent;
+                return orderId ? orderId.replace('#', '') : null;
+            })
             .filter(Boolean);
     }
 
-    function updateEmptyState() {
-        const tbody = document.querySelector('.orders-table tbody');
-        const visibleRows = Array.from(tbody.querySelectorAll('tr:not([style*="display: none"])'))
-            .filter(row => !row.classList.contains('empty-state'));
-
-        let emptyState = tbody.querySelector('.empty-state');
-        if (visibleRows.length === 0) {
-            if (!emptyState) {
-                emptyState = document.createElement('tr');
-                emptyState.className = 'empty-state';
-                emptyState.innerHTML = `
-                    <td colspan="8">
-                        <div class="empty-state-content">
-                            <i class="fas fa-search"></i>
-                            <p>Aucune commande ne correspond à vos critères</p>
-                            <button class="btn btn-outline btn-sm" onclick="resetFilters()">
-                                <i class="fas fa-undo"></i> Réinitialiser les filtres
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(emptyState);
-            }
-        } else if (emptyState) {
-            emptyState.remove();
-        }
+    function getStatusDisplayName(status) {
+        const statusMap = {
+            'pending': 'En attente',
+            'processing': 'En cours',
+            'shipped': 'Expédiée',
+            'delivered': 'Livrée',
+            'cancelled': 'Annulée'
+        };
+        
+        return statusMap[status] || status;
     }
-
-    // Fonction de réinitialisation des filtres
-    window.resetFilters = function () {
-        if (statusFilter) statusFilter.value = '';
-        if (dateFilter) dateFilter.value = 'today';
-        if (searchOrder) searchOrder.value = '';
-        applyFilters();
-        showNotification('Filtres réinitialisés', 'info');
-    };
 
     function debounce(func, wait) {
         let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
+        return function (...args) {
             clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            timeout = setTimeout(() => func.apply(this, args), wait);
         };
     }
-
-    // ==========================
-    // 9. Gestion des mises à jour groupées
-    // ==========================
-    async function handleBatchUpdate() {
-        const selectedOrders = getSelectedOrders();
-        const newStatus = document.getElementById('batchStatus').value;
-        const note = document.getElementById('batchNote').value;
-
-        if (!newStatus) {
-            showNotification('Veuillez sélectionner un statut', 'warning');
-            return;
-        }
-
-        try {
-            showNotification('Mise à jour en cours...', 'info');
-
-            const response = await fetch('/dashboard/orders/batch-update/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    orders: selectedOrders,
-                    status: newStatus,
-                    note: note
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Erreur lors de la mise à jour');
-            }
-
-            const result = await response.json();
-            showNotification(result.message || 'Mise à jour effectuée avec succès', 'success');
-
-            // Fermer le modal
-            const modal = document.getElementById('batchUpdateModal');
-            if (modal) modal.classList.remove('active');
-
-            // Réinitialiser le formulaire
-            document.getElementById('batchStatus').value = '';
-            document.getElementById('batchNote').value = '';
-
-            // Recharger la page après un court délai
-            setTimeout(() => window.location.reload(), 1000);
-
-        } catch (error) {
-            console.error('Erreur:', error);
-            showNotification('Erreur lors de la mise à jour des commandes', 'error');
-        }
-    }
-
-    // ==========================
-    // 10. Gestion des fichiers joints
-    // ==========================
-    const fileInput = document.getElementById('fileInput');
-    const attachFileButton = document.querySelector('.note-actions .btn-outline');
-
-    if (attachFileButton && fileInput) {
-        attachFileButton.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', async () => {
-            const file = fileInput.files[0];
-            if (!file) return;
-
-            const maxSize = 5 * 1024 * 1024; // 5 MB
-            if (file.size > maxSize) {
-                showNotification('Le fichier est trop volumineux. Maximum 5 MB.', 'error');
-                return;
-            }
-
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('order_id', getCurrentOrderId());
-
-                const response = await fetch('/dashboard/orders/attach-file/', {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('Erreur lors du téléchargement');
-
-                const result = await response.json();
-                showNotification('Fichier joint avec succès', 'success');
-                updateAttachmentsList(result.attachment);
-
-            } catch (error) {
-                console.error('Erreur:', error);
-                showNotification('Erreur lors du téléchargement du fichier', 'error');
-            }
-        });
-    }
-
-    function getCurrentOrderId() {
-        return document.querySelector('#orderDetailModal .modal-header h2')
-            ?.textContent?.match(/#([^#]+)$/)?.[1];
-    }
-
-    function updateAttachmentsList(attachment) {
-        const attachmentsList = document.querySelector('.attachments-list');
-        if (!attachmentsList) return;
-
-        const newAttachment = document.createElement('div');
-        newAttachment.className = 'attachment-item';
-        newAttachment.innerHTML = `
-            <i class="fas fa-${getFileIcon(attachment.filename)}"></i>
-            <span>${attachment.filename}</span>
-            <div class="attachment-actions">
-                <button class="btn btn-sm" onclick="downloadAttachment('${attachment.id}')">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button class="btn btn-sm" onclick="deleteAttachment('${attachment.id}')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        attachmentsList.appendChild(newAttachment);
-    }
-
-    function getFileIcon(filename) {
-        const ext = filename.split('.').pop().toLowerCase();
-        switch (ext) {
-            case 'pdf': return 'file-pdf';
-            case 'doc':
-            case 'docx': return 'file-word';
-            case 'xls':
-            case 'xlsx': return 'file-excel';
-            case 'jpg':
-            case 'jpeg':
-            case 'png':
-            case 'gif': return 'file-image';
-            default: return 'file';
-        }
-    }
-
-    // ==========================
-    // 11. Initialisation
-    // ==========================
-    function init() {
-        // Initialiser les composants
-        initializeModals();
-        updateBatchActionsVisibility();
-        applyFilters();
-
-        // Attacher l'exportation
-        document.getElementById('exportOrders')?.addEventListener('click', () => showExportModal());
-        document.getElementById('batchExport')?.addEventListener('click', () => {
-            const selectedIds = getSelectedOrders();
-            if (selectedIds.length === 0) {
-                showNotification('Veuillez sélectionner au moins une commande', 'warning');
-                return;
-            }
-            showExportModal(selectedIds);
-        });
-
-        // Navigation au clavier dans le tableau
-        document.addEventListener('keydown', handleTableNavigation);
-    }
-
-    function handleTableNavigation(e) {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            const activeRow = document.activeElement.closest('tr');
-            if (activeRow) {
-                e.preventDefault();
-                const rows = Array.from(document.querySelectorAll('.orders-table tbody tr:not([style*="display: none"])'));
-                const currentIndex = rows.indexOf(activeRow);
-                const nextIndex = e.key === 'ArrowUp' ? currentIndex - 1 : currentIndex + 1;
-
-                if (nextIndex >= 0 && nextIndex < rows.length) {
-                    const nextRow = rows[nextIndex];
-                    nextRow.querySelector('.action-btn')?.focus();
-                }
-            }
-        }
-    }
-
-    // Démarrer l'application
-    init();
 });

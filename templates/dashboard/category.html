@@ -36,7 +36,7 @@
     <!-- Barre d'outils -->
     <div class="toolbar">
         <div class="toolbar-left">
-            <form method="GET" action="{% url 'admin_categories' %}" class="search-bar">
+            <form method="GET" action="{% url 'admin_categories' %}">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" name="search" placeholder="Rechercher une catégorie..." value="{{ request.GET.search }}">

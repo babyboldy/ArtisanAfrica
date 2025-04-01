@@ -1,106 +1,146 @@
+// settings.js - Gestion des paramètres du système
+
 document.addEventListener('DOMContentLoaded', function() {
     // Éléments du DOM
-    const navItems = document.querySelectorAll('.nav-item');
-    const sections = document.querySelectorAll('.settings-section');
-    const saveBtn = document.getElementById('saveSettings');
-    const resetBtn = document.getElementById('resetSettings');
-    const imageUploads = document.querySelectorAll('.image-upload-group input[type="file"]');
-    const imageRemoveBtns = document.querySelectorAll('.image-actions .btn-outline-danger');
+    const elements = {
+        navItems: document.querySelectorAll('.nav-item'),
+        sections: document.querySelectorAll('.settings-section'),
+        saveBtn: document.getElementById('saveSettings'),
+        resetBtn: document.getElementById('resetSettings'),
+        imageUploads: document.querySelectorAll('.image-upload-group input[type="file"]'),
+        imageRemoveBtns: document.querySelectorAll('.image-actions .btn-outline-danger')
+    };
 
     // État initial
     let initialSettings = {};
     let hasChanges = false;
 
     // Initialisation
-    initSettings();
-    initEventListeners();
+    saveInitialSettings();
+    initSectionNavigation();
+    initImageHandlers();
+    initFormHandlers();
+    initButtons();
+    checkUrlParams();
+    initChangeDetection();
 
     // Fonctions d'initialisation
-    function initSettings() {
-        // Sauvegarder les paramètres initiaux
-        saveInitialSettings();
-        // Vérifier l'URL pour la section active
-        checkUrlParams();
-        // Activer la détection des changements
-        initChangeDetection();
-    }
-
     function saveInitialSettings() {
         // Collecter tous les champs de formulaire
-        const inputs = document.querySelectorAll('input, select, textarea');
+        const inputs = document.querySelectorAll('input:not([type="file"]), select, textarea');
+        
         inputs.forEach(input => {
-            if (input.type === 'checkbox') {
+            if (input.type === 'checkbox' || input.type === 'radio') {
                 initialSettings[input.id] = input.checked;
-            } else if (input.type === 'file') {
-                // Ignorer les fichiers
-                return;
             } else {
                 initialSettings[input.id] = input.value;
             }
         });
     }
 
-    function initEventListeners() {
-        // Navigation
-        navItems.forEach(item => {
+    function initSectionNavigation() {
+        if (!elements.navItems.length) return;
+
+        elements.navItems.forEach(item => {
             item.addEventListener('click', () => switchSection(item.dataset.section));
         });
+    }
 
-        // Écouter les changements
-        document.querySelectorAll('input, select, textarea').forEach(input => {
-            input.addEventListener('change', () => {
-                hasChanges = true;
-                updateSaveButton();
-            });
-        });
-
-        // Gestion des images
-        imageUploads.forEach(upload => {
+    function initImageHandlers() {
+        // Gestion des uploads d'images
+        elements.imageUploads.forEach(upload => {
             upload.addEventListener('change', handleImageUpload);
         });
 
-        imageRemoveBtns.forEach(btn => {
+        // Gestion de la suppression d'images
+        elements.imageRemoveBtns.forEach(btn => {
             btn.addEventListener('click', handleImageRemove);
         });
+    }
 
-        // Boutons d'action
-        saveBtn.addEventListener('click', saveSettings);
-        resetBtn.addEventListener('click', resetSettings);
+    function initFormHandlers() {
+        // Écouter les changements dans les formulaires
+        document.querySelectorAll('input, select, textarea').forEach(input => {
+            // Ignorer les éléments cachés et les boutons
+            if (input.type === 'hidden' || input.type === 'button' || input.type === 'submit') {
+                return;
+            }
+
+            // Ajouter des écouteurs d'événements adaptés au type d'input
+            if (input.type === 'checkbox' || input.type === 'radio' || input.type === 'file' || input.tagName.toLowerCase() === 'select') {
+                input.addEventListener('change', markAsChanged);
+            } else {
+                input.addEventListener('input', markAsChanged);
+            }
+        });
+
+        // Validation en temps réel
+        const emailFields = document.querySelectorAll('input[type="email"]');
+        emailFields.forEach(field => {
+            field.addEventListener('blur', function() {
+                validateEmail(this);
+            });
+        });
+
+        const requiredFields = document.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            field.addEventListener('blur', function() {
+                validateRequired(this);
+            });
+        });
+    }
+
+    function initButtons() {
+        if (elements.saveBtn) {
+            elements.saveBtn.addEventListener('click', saveSettings);
+            elements.saveBtn.disabled = !hasChanges;
+        }
+
+        if (elements.resetBtn) {
+            elements.resetBtn.addEventListener('click', resetSettings);
+            elements.resetBtn.disabled = !hasChanges;
+        }
     }
 
     function initChangeDetection() {
-        // Détecter les changements non sauvegardés
+        // Détecter les changements non sauvegardés avant de quitter la page
         window.addEventListener('beforeunload', (e) => {
             if (hasChanges) {
                 e.preventDefault();
-                e.returnValue = '';
+                e.returnValue = 'Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter cette page ?';
+                return e.returnValue;
             }
         });
     }
 
-    // Gestion des sections
+    // Fonctions de gestion des sections
     function switchSection(sectionId) {
+        if (!sectionId) return;
+
+        // Vérifier s'il y a des changements non sauvegardés
         if (hasChanges) {
             if (!confirm('Vous avez des modifications non enregistrées. Voulez-vous vraiment changer de section ?')) {
                 return;
             }
         }
 
-        navItems.forEach(item => {
+        // Mettre à jour les classes actives
+        elements.navItems.forEach(item => {
             item.classList.toggle('active', item.dataset.section === sectionId);
         });
 
-        sections.forEach(section => {
+        elements.sections.forEach(section => {
             section.classList.toggle('active', section.id === sectionId);
         });
 
-        // Mettre à jour l'URL
-        history.pushState({}, '', `?section=${sectionId}`);
+        // Mettre à jour l'URL sans rechargement
+        history.pushState(null, null, `?section=${sectionId}`);
     }
 
     function checkUrlParams() {
         const params = new URLSearchParams(window.location.search);
         const section = params.get('section');
+        
         if (section) {
             switchSection(section);
         }
@@ -117,74 +157,115 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const preview = e.target.closest('.image-upload-group').querySelector('img');
-        const reader = new FileReader();
+        if (!preview) return;
 
+        const reader = new FileReader();
         reader.onload = function(event) {
             preview.src = event.target.result;
-            hasChanges = true;
-            updateSaveButton();
+            markAsChanged();
         };
 
         reader.readAsDataURL(file);
     }
 
     function handleImageRemove(e) {
+        e.preventDefault();
+        
         const group = e.target.closest('.image-upload-group');
         const preview = group.querySelector('img');
         const input = group.querySelector('input[type="file"]');
+        
+        if (!preview || !input) return;
 
-        preview.src = '/api/placeholder/200/60';
+        // Réinitialiser l'image
+        preview.src = preview.dataset.default || '/api/placeholder/200/60';
         input.value = '';
-        hasChanges = true;
-        updateSaveButton();
+        
+        markAsChanged();
+    }
+
+    // Validation des formulaires
+    function validateEmail(field) {
+        const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
+        toggleFieldError(field, isValid, 'Adresse email invalide');
+        return isValid;
+    }
+
+    function validateRequired(field) {
+        const isValid = field.value.trim() !== '';
+        toggleFieldError(field, isValid, 'Ce champ est requis');
+        return isValid;
+    }
+
+    function toggleFieldError(field, isValid, errorMessage) {
+        // Supprimer l'ancienne erreur
+        const existingError = field.parentNode.querySelector('.field-error');
+        if (existingError) {
+            existingError.remove();
+        }
+
+        // Si invalide, ajouter une nouvelle erreur
+        if (!isValid) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error';
+            errorDiv.textContent = errorMessage;
+            errorDiv.style.color = 'var(--danger)';
+            errorDiv.style.fontSize = '0.85rem';
+            errorDiv.style.marginTop = '0.25rem';
+            
+            field.parentNode.appendChild(errorDiv);
+            field.classList.add('error');
+        } else {
+            field.classList.remove('error');
+        }
     }
 
     // Gestion des paramètres
-    async function saveSettings() {
-        if (!validateSettings()) {
+    function saveSettings() {
+        // Valider tous les champs du formulaire
+        if (!validateAllFields()) {
+            showToast('Veuillez corriger les erreurs dans le formulaire', 'error');
             return;
         }
 
-        const saveBtn = document.getElementById('saveSettings');
+        // Désactiver le bouton pendant la sauvegarde
+        const saveBtn = elements.saveBtn;
+        const originalText = saveBtn.innerHTML;
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
 
-        try {
+        // Simuler une sauvegarde (à remplacer par un vrai appel AJAX)
+        setTimeout(() => {
             // Collecter tous les paramètres
             const settings = collectSettings();
             
-            // Simuler une sauvegarde
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Mettre à jour les paramètres initiaux
+            // Enregistrer et mettre à jour les paramètres initiaux
             saveInitialSettings();
             hasChanges = false;
-            updateSaveButton();
+            updateButtons();
+
+            // Restaurer le bouton
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
 
             showToast('Paramètres enregistrés avec succès', 'success');
-        } catch (error) {
-            showToast('Erreur lors de l\'enregistrement des paramètres', 'error');
-            console.error('Error saving settings:', error);
-        } finally {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
-        }
+        }, 1500);
     }
 
     function resetSettings() {
-        if (!confirm('Voulez-vous vraiment réinitialiser tous les paramètres ?')) {
+        if (!confirm('Voulez-vous vraiment réinitialiser tous les paramètres ? Les modifications non enregistrées seront perdues.')) {
             return;
         }
 
         // Restaurer les valeurs initiales
         Object.entries(initialSettings).forEach(([id, value]) => {
             const element = document.getElementById(id);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = value;
-                } else {
-                    element.value = value;
-                }
+            if (!element) return;
+
+            if (element.type === 'checkbox' || element.type === 'radio') {
+                element.checked = value;
+            } else {
+                element.value = value;
             }
         });
 
@@ -193,33 +274,31 @@ document.addEventListener('DOMContentLoaded', function() {
             img.src = img.dataset.default || '/api/placeholder/200/60';
         });
 
+        // Nettoyer les erreurs
+        document.querySelectorAll('.field-error').forEach(error => error.remove());
+        document.querySelectorAll('.error').forEach(field => field.classList.remove('error'));
+
         hasChanges = false;
-        updateSaveButton();
+        updateButtons();
         showToast('Paramètres réinitialisés', 'info');
     }
 
-    function validateSettings() {
+    function validateAllFields() {
         let isValid = true;
-        const requiredFields = document.querySelectorAll('[required]');
-
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
+        
+        // Valider les champs requis
+        document.querySelectorAll('[required]').forEach(field => {
+            if (!validateRequired(field)) {
                 isValid = false;
-                field.classList.add('error');
-                showFieldError(field, 'Ce champ est requis');
-            } else {
-                field.classList.remove('error');
-                removeFieldError(field);
             }
         });
 
-        // Validation de l'email
-        const emailField = document.getElementById('storeEmail');
-        if (emailField && !validateEmail(emailField.value)) {
-            isValid = false;
-            emailField.classList.add('error');
-            showFieldError(emailField, 'Email invalide');
-        }
+        // Valider les emails
+        document.querySelectorAll('input[type="email"]').forEach(field => {
+            if (field.value.trim() !== '' && !validateEmail(field)) {
+                isValid = false;
+            }
+        });
 
         return isValid;
     }
@@ -239,55 +318,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Utilitaires
-    function updateSaveButton() {
-        saveBtn.disabled = !hasChanges;
-        resetBtn.disabled = !hasChanges;
+    function markAsChanged() {
+        hasChanges = true;
+        updateButtons();
     }
 
-    function validateEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    function showFieldError(field, message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'field-error';
-        errorDiv.textContent = message;
-        
-        const existingError = field.parentNode.querySelector('.field-error');
-        if (!existingError) {
-            field.parentNode.appendChild(errorDiv);
-        }
-    }
-
-    function removeFieldError(field) {
-        const error = field.parentNode.querySelector('.field-error');
-        if (error) {
-            error.remove();
-        }
-    }
-
-    function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${message}</span>
-        `;
-
-        const container = document.querySelector('.toast-container') || 
-            (() => {
-                const container = document.createElement('div');
-                container.className = 'toast-container';
-                document.body.appendChild(container);
-                return container;
-            })();
-
-        container.appendChild(toast);
-        setTimeout(() => {
-            toast.remove();
-            if (container.children.length === 0) {
-                container.remove();
-            }
-        }, 3000);
+    function updateButtons() {
+        if (elements.saveBtn) elements.saveBtn.disabled = !hasChanges;
+        if (elements.resetBtn) elements.resetBtn.disabled = !hasChanges;
     }
 });

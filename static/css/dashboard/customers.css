@@ -1,79 +1,10 @@
-/* Toolbar */
-.toolbar {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre plus douce */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    gap: 1rem; /* Espacement entre les éléments */
-}
-
-.toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex: 1;
-}
-
-.search-box {
-    position: relative;
-    flex: 1;
-    max-width: 400px;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Animation douce */
-}
-
-.search-box input:focus {
-    border-color: #6b21a8; /* Couleur de focus */
-    box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.1); /* Effet de focus */
-    outline: none;
-}
-
-.search-box i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-    pointer-events: none; /* Empêche l'icône d'interférer avec le clic */
-}
-
-.filter-group {
-    display: flex;
-    gap: 1rem;
-}
-
-.filter-select {
-    padding: 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    min-width: 150px;
-    background-color: white;
-    font-size: 0.95rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Animation douce */
-}
-
-.filter-select:focus {
-    border-color: #6b21a8; /* Couleur de focus */
-    box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.1); /* Effet de focus */
-    outline: none;
-}
+/* customers.css - Styles spécifiques aux clients */
 
 /* Table des clients */
 .customers-table-wrapper {
     background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre plus douce */
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
     margin-bottom: 1.5rem;
 }
@@ -84,24 +15,24 @@
 }
 
 .customers-table th {
-    background-color: #f9fafb;
+    background-color: var(--gray-50);
     padding: 1rem;
     text-align: left;
     font-weight: 500;
-    color: #6b7280;
+    color: var(--gray-900);
     font-size: 0.9rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--gray-200);
 }
 
 .customers-table td {
     padding: 1rem;
     vertical-align: middle;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--gray-200);
 }
 
 .customers-table tbody tr:hover {
-    background-color: #f9fafb;
-    transition: background-color 0.2s ease; /* Animation douce */
+    background-color: var(--gray-50);
+    transition: background-color 0.2s ease;
 }
 
 /* Informations client */
@@ -116,17 +47,17 @@
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #e5e7eb; /* Bordure pour l'image */
+    border: 2px solid var(--gray-200);
 }
 
 .customer-info h4 {
-    color: #111;
+    color: var(--text-primary);
     font-size: 0.95rem;
     margin-bottom: 0.25rem;
 }
 
 .customer-id {
-    color: #6b7280;
+    color: var(--gray-500);
     font-size: 0.85rem;
 }
 
@@ -148,12 +79,7 @@
 
 .orders-info strong,
 .spending-info strong {
-    color: #111;
-}
-
-.text-muted {
-    color: #6b7280;
-    font-size: 0.85rem;
+    color: var(--text-primary);
 }
 
 /* Dernière commande */
@@ -164,126 +90,7 @@
     font-size: 0.9rem;
 }
 
-/* Badge de statut */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: capitalize; /* Texte en minuscule avec première lettre en majuscule */
-}
-
-.status-badge.active {
-    background-color: #dcfce7;
-    color: #16a34a;
-}
-
-.status-badge.blocked {
-    background-color: #fee2e2;
-    color: #ef4444;
-}
-
-/* Actions */
-.table-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.action-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: none;
-    color: #6b7280;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease; /* Animation douce */
-}
-
-.action-btn:hover {
-    background-color: #f3f4f6;
-    color: #6b21a8;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .toolbar {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .toolbar-left {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .search-box {
-        max-width: none;
-        width: 100%;
-    }
-
-    .filter-group {
-        width: 100%;
-    }
-
-    .filter-select {
-        flex: 1;
-    }
-
-    .customers-table th,
-    .customers-table td {
-        padding: 0.75rem; /* Réduire le padding pour les petits écrans */
-    }
-}
-
-/* Styles du modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Assure que le modal est au-dessus de tout */
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px; /* Largeur maximale pour le modal */
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
-}
-
-.close-modal {
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-    cursor: pointer;
-    font-size: 1.5rem;
-    color: #6b7280;
-    transition: color 0.2s ease; /* Animation douce */
-}
-
-.close-modal:hover {
-    color: #111; /* Changement de couleur au survol */
-}
-
+/* Détails clients dans le modal */
 .customer-details {
     display: flex;
     flex-direction: column;
@@ -296,23 +103,23 @@
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
-    margin: 0 auto; /* Centrer l'image */
+    margin: 0 auto;
 }
 
 .customer-details h3 {
     font-size: 1.25rem;
-    color: #111;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
 .customer-details p {
     font-size: 0.95rem;
-    color: #6b7280;
+    color: var(--gray-500);
     margin: 0;
 }
 
 .customer-details strong {
-    color: #111;
+    color: var(--text-primary);
 }
 
 #customerAddresses {
@@ -321,4 +128,29 @@
 
 #customerAddresses p {
     margin: 0.5rem 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .customers-table th,
+    .customers-table td {
+        padding: 0.75rem;
+    }
+    
+    .customer-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .contact-info span:last-child {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .customers-table {
+        display: block;
+        overflow-x: auto;
+    }
 }

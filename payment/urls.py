@@ -6,3 +6,22 @@ urlpatterns = [
     path('process/', views.process_payment, name='process_payment'),
     path('confirmation/<str:order_number>/', views.payment_confirmation, name='payment_confirmation'),
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

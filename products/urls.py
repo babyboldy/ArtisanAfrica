@@ -21,3 +21,4 @@ urlpatterns = [
     path('products/<int:product_id>/check-stock/', views.check_stock, name='check_stock'),
 
 ]
+
