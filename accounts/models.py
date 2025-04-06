@@ -115,6 +115,15 @@ class User(AbstractUser):
             created_at__month=month,
             status='completed'
         ).aggregate(total=Sum('total_amount'))['total'] or 0
+    
+
+    @property
+    def profile_picture_url(self):
+        if self.profile_picture and hasattr(self.profile_picture, 'url'):
+            return self.profile_picture.url
+        return '/static/images/default-avatar.png'
+    
+    
 
 class UserAddress(models.Model):
     ADDRESS_TYPES = [

@@ -171,7 +171,7 @@
                                 <!-- Suite du template emails/order_confirmation.html -->
                             </td>
                             <td>{{ item.quantity }}</td>
-                            <td>{{ item.total_price }} €</td>
+                            <td>{{ item.total_price }} F CFA</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -180,20 +180,20 @@
                 <div class="order-total">
                     <div class="total-row">
                         <span>Sous-total:</span>
-                        <span>{{ order.subtotal }} €</span>
+                        <span>{{ order.subtotal }} F CFA</span>
                     </div>
                     <div class="total-row">
                         <span>TVA (20%):</span>
-                        <span>{{ order.tax_amount }} €</span>
+                        <span>{{ order.tax_amount }} F CFA</span>
                     </div>
                     <div class="total-row">
                         <span>Frais de livraison:</span>
-                        <span>{% if order.shipping_cost == 0 %}Gratuit{% else %}{{ order.shipping_cost }} €{% endif
+                        <span>{% if order.shipping_cost == 0 %}Gratuit{% else %}{{ order.shipping_cost }} F CFA{% endif
                             %}</span>
                     </div>
                     <div class="total-row final-total">
                         <span>Total:</span>
-                        <span>{{ order.total_amount }} €</span>
+                        <span>{{ order.total_amount }} F CFA</span>
                     </div>
                 </div>
             </div>

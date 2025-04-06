@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Formater un prix
     function formatPrice(price) {
-        return `${price.toFixed(2)} €`;
+        return `${price.toFixed(2)} F CFA`;
     }
 
     // Fonctions pour ajouter et gérer les produits dans le panier (utilisées sur d'autres pages)

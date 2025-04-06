@@ -1,4 +1,5 @@
 # notifications/views.py
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
@@ -6,6 +7,8 @@ from django.utils import timezone
 from django.urls import reverse
 from .models import Notification
 from orders.models import Order
+from django.db.models import Q
+
 
 def is_staff(user):
     return user.is_staff
@@ -122,6 +125,49 @@ def notification_detail(request, notification_id):
 
 
 
+@login_required
+@user_passes_test(is_staff)
+def unread_notifications_api(request):
+    """
+    API endpoint pour récupérer les notifications non lues
+    """
+    unread_notifications = Notification.objects.filter(
+        user=request.user,
+        is_read=False,
+        is_archived=False
+    ).order_by('-created_at')[:5]  # Limiter aux 5 plus récentes pour la performance
+    
+    notifications_data = []
+    for notification in unread_notifications:
+        notifications_data.append({
+            'id': notification.id,
+            'title': notification.title,
+            'message': notification.message,
+            'created_at': notification.created_at.strftime('%d/%m/%Y %H:%M'),
+            'type': notification.type,
+            'icon': get_notification_icon(notification.type),
+            'is_read': notification.is_read,
+        })
+    
+    return JsonResponse({
+        'unread_count': unread_notifications.count(),
+        'notifications': notifications_data,
+        'success': True
+    })
+
+# Fonction utilitaire pour obtenir l'icône appropriée selon le type de notification
+def get_notification_icon(notification_type):
+    icons = {
+        'order': 'fa-shopping-bag',
+        'stock': 'fa-box',
+        'system': 'fa-cog',
+        'customer': 'fa-user',
+        'payment': 'fa-credit-card'
+    }
+    return icons.get(notification_type, 'fa-bell')
+
+
+
 
 
 
@@ -145,6 +191,8 @@ def toggle_notification_read(request, notification_id):
         redirect_url = reverse('admin_notifications')
     return redirect(redirect_url)
 
+
+
 @login_required
 @user_passes_test(is_staff)
 def mark_all_read(request):
@@ -156,8 +204,22 @@ def mark_all_read(request):
             notification.read_at = timezone.now()
             notification.save()
         
+        # Si la requête est en AJAX, retourner une réponse JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({
+                'success': True,
+                'message': f'{count} notifications ont été marquées comme lues.'
+            })
+        
+        # Sinon, rediriger avec un message
         messages.success(request, f'{count} notifications ont été marquées comme lues.')
-    return redirect('admin_notifications')
+        return redirect('admin_notifications')
+    
+    # Méthode GET non autorisée
+    return JsonResponse({'success': False, 'message': 'Méthode non autorisée'}, status=405)
+
+
+
 
 @login_required
 @user_passes_test(is_staff)

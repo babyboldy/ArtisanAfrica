@@ -41,7 +41,7 @@
             </div>
             <div class="stat-content">
                 <h3>Revenus</h3>
-                <div class="stat-value">{{ stats.total_revenue|floatformat:2 }} €</div>
+                <div class="stat-value">{{ stats.total_revenue|floatformat:2 }} F CFA</div>
                 <div class="stat-change {% if revenue_percentage > 0 %}increase{% elif revenue_percentage < 0 %}decrease{% else %}neutral{% endif %}">
                     <i class="fas {% if revenue_percentage > 0 %}fa-arrow-up{% elif revenue_percentage < 0 %}fa-arrow-down{% else %}fa-minus{% endif %}"></i>
                     <span>{{ revenue_percentage|floatformat:1 }}%</span>
@@ -176,7 +176,7 @@
                             </div>
                         </td>
                         <td>{{ order.products_count }} article{{ order.products_count|pluralize }}</td>
-                        <td>{{ order.total|floatformat:2 }} €</td>
+                        <td>{{ order.total|floatformat:2 }} F CFA</td>
                         <td>
                             <span class="status-badge 
                                 {% if order.status == 'pending' %}pending

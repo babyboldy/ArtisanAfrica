@@ -61,9 +61,9 @@
                 </div>
 
                 <div class="product-price">
-                    <span class="current-price">{{ product.price }} €</span>
+                    <span class="current-price">{{ product.price }} F CFA</span>
                     {% if product.old_price %}
-                    <span class="original-price">{{ product.old_price }} €</span>
+                    <span class="original-price">{{ product.old_price }} F CFA</span>
                     <span class="discount">
                         -{{ product.discount_percentage|floatformat:0 }}%
                     </span>
@@ -219,7 +219,7 @@
                         </div>
                         <div class="product-info">
                             <h3>{{ similar.name }}</h3>
-                            <p class="product-price">{{ similar.price }} €</p>
+                            <p class="product-price">{{ similar.price }} F CFA</p>
                         </div>
                     </a>
                 </div>

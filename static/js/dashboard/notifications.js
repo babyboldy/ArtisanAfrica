@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Rediriger vers la page de détails
                 setTimeout(() => {
-                    window.location.href = `/notifications/detail/${notifId}/`;
+                    window.location.href = `/detail/${notifId}/`;
                 }, 100);
             });
         });

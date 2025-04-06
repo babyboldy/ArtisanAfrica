@@ -69,42 +69,57 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch('/notifications/unread/')
                 .then(response => response.json())
                 .then(data => {
-                    if (!notificationList) return;
-                    notificationList.innerHTML = '';
-
-                    if (data.notifications && data.notifications.length > 0) {
-                        // Créer les éléments de notification
-                        data.notifications.forEach(notification => {
-                            const item = document.createElement('div');
-                            item.classList.add('notification-item', notification.is_read ? '' : 'unread');
-                            item.dataset.id = notification.id;
-                            
-                            item.innerHTML = `
-                                <i class="fas ${notification.icon || 'fa-bell'}"></i>
-                                <div class="notification-content">
-                                    <p>${notification.title}</p>
-                                    <span>${notification.created_at}</span>
-                                </div>
-                                ${!notification.is_read ? '<div class="unread-dot" data-id="' + notification.id + '"></div>' : ''}
-                            `;
-                            
-                            // Ajouter un gestionnaire d'événements pour le clic
-                            item.addEventListener('click', function() {
-                                window.location.href = `/notifications/detail/${notification.id}/`;
-                            });
-                            
-                            notificationList.appendChild(item);
-                        });
-                        
-                        // Mettre à jour le badge
-                        if (notificationBadge) {
+                    // Récupérer le badge de notification
+                    let notificationBadge = document.getElementById('notification-badge');
+                    
+                    // Si le badge n'existe pas (car la variable template unread_count n'était pas définie)
+                    // alors on le crée dynamiquement
+                    if (!notificationBadge && notificationTrigger) {
+                        notificationBadge = document.createElement('span');
+                        notificationBadge.id = 'notification-badge';
+                        notificationBadge.className = 'notification-badge';
+                        notificationTrigger.appendChild(notificationBadge);
+                    }
+                    
+                    // Mettre à jour le badge sur toutes les pages
+                    if (notificationBadge) {
+                        if (data.unread_count && data.unread_count > 0) {
                             notificationBadge.textContent = data.unread_count;
-                            notificationBadge.style.display = data.unread_count > 0 ? 'flex' : 'none';
-                        }
-                    } else {
-                        notificationList.innerHTML = '<p class="no-notifications">Aucune nouvelle notification</p>';
-                        if (notificationBadge) {
+                            notificationBadge.style.display = 'flex';
+                        } else {
                             notificationBadge.style.display = 'none';
+                        }
+                    }
+
+                    // Si le dropdown est ouvert, mettre à jour aussi son contenu
+                    if (notificationList && notificationCenter.classList.contains('active')) {
+                        notificationList.innerHTML = '';
+
+                        if (data.notifications && data.notifications.length > 0) {
+                            // Créer les éléments de notification
+                            data.notifications.forEach(notification => {
+                                const item = document.createElement('div');
+                                item.classList.add('notification-item', notification.is_read ? '' : 'unread');
+                                item.dataset.id = notification.id;
+                                
+                                item.innerHTML = `
+                                    <i class="fas ${notification.icon || 'fa-bell'}"></i>
+                                    <div class="notification-content">
+                                        <p>${notification.title}</p>
+                                        <span>${notification.created_at}</span>
+                                    </div>
+                                    ${!notification.is_read ? '<div class="unread-dot" data-id="' + notification.id + '"></div>' : ''}
+                                `;
+                                
+                                // Ajouter un gestionnaire d'événements pour le clic
+                                item.addEventListener('click', function() {
+                                    window.location.href = `/notifications/detail/${notification.id}/`;
+                                });
+                                
+                                notificationList.appendChild(item);
+                            });
+                        } else {
+                            notificationList.innerHTML = '<p class="no-notifications">Aucune nouvelle notification</p>';
                         }
                     }
                 })
@@ -116,16 +131,35 @@ document.addEventListener('DOMContentLoaded', function () {
             notificationTrigger.addEventListener('click', () => {
                 notificationCenter.classList.toggle('active');
                 if (notificationCenter.classList.contains('active')) {
-                    fetchNotifications();
+                    fetchNotifications(); // Actualiser les notifications quand on ouvre le dropdown
                 }
             });
         }
 
         // Marquer toutes les notifications comme lues
+
         if (markAllReadBtn) {
             markAllReadBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]')?.value;
+                e.stopPropagation(); // Empêcher la propagation pour ne pas fermer le dropdown
+                
+                // Récupération du token CSRF depuis les cookies
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                
+                const csrfToken = getCookie('csrftoken');
                 
                 if (!csrfToken) {
                     console.error('CSRF token not found');
@@ -142,11 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        if (notificationBadge) {
-                            notificationBadge.textContent = '0';
-                            notificationBadge.style.display = 'none';
-                        }
-                        fetchNotifications();
+                        fetchNotifications(); // Actualiser les notifications
                         showToast('Toutes les notifications ont été marquées comme lues', 'success');
                     }
                 })
@@ -161,11 +191,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Charger les notifications au démarrage
+        // Charger les notifications au démarrage de chaque page
         fetchNotifications();
         
-        // Charger les notifications périodiquement (toutes les 2 minutes)
-        setInterval(fetchNotifications, 120000);
+        // Charger les notifications périodiquement (toutes les 30 secondes)
+        setInterval(fetchNotifications, 30000); // Réduit de 120000 à 30000 pour une mise à jour plus fréquente
     }
 
     /** ========== 3️⃣ GESTION DU MENU PROFIL ========== */

@@ -120,7 +120,7 @@
             <div class="product-info">
                 <h3>{{ product.name }}</h3>
                 <div class="product-category">{{ product.category.name }}</div>
-                <div class="product-price">{{ product.price }} €</div>
+                <div class="product-price">{{ product.price }} F CFA</div>
                 <div class="product-stock">Stock: {{ product.stock }}</div>
             </div>
         </div>
@@ -160,7 +160,7 @@
                     <div class="form-group">
                         <label for="productPrice">Prix</label>
                         <div class="input-with-icon">
-                            <span class="input-icon">€</span>
+                            <span class="input-icon">F CFA</span>
                             <input type="number" id="productPrice" name="price" step="0.01" required>
                         </div>
                     </div>
@@ -234,7 +234,6 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline close-modal">Annuler</button>
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </div>
             </form>
@@ -256,7 +255,6 @@
             <form method="POST" action="{% url 'delete_product' %}" id="deleteProductForm">
                 {% csrf_token %}
                 <input type="hidden" id="deleteProductId" name="product_id">
-                <button type="button" class="btn btn-outline close-modal">Annuler</button>
                 <button type="submit" class="btn btn-danger">Supprimer</button>
             </form>
         </div>

@@ -1,72 +1,72 @@
-<!-- order.html -->
-
 {% extends 'base/dashboard/base.html' %}
 {% load static %}
-{% block title %}E-Shop - Accueil{% endblock %}
+{% block title %}E-Shop Admin - Gestion des Commandes{% endblock %}
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'css/dashboard/order.css' %}">
 
 <!-- Zone de contenu -->
 <div class="content-wrapper">
-    <!-- En-tête de la page -->
+    <!-- En-tête de la page avec titre et boutons d'export -->
     <div class="page-header">
         <div class="header-left">
-            <h1>Commandes</h1>
-            <p class="text-muted">Gérez toutes vos commandes</p>
+            <h1>Gestion des Commandes</h1>
+            <p class="text-muted">Visualisez et gérez les commandes de vos clients</p>
         </div>
-        <!-- <div class="header-right">
-            <button class="btn btn-outline" id="exportOrders">
-                <i class="fas fa-download"></i>
-                Exporter
-            </button>
-        </div> -->
+        <div class="header-right">
+            <div class="export-dropdown">
+                <button class="btn btn-outline btn-with-icon" id="exportDropdownBtn">
+                    <i class="fas fa-download"></i>
+                    <span>Exporter</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="export-dropdown-content">
+                    <a href="{% url 'export_orders_xls' %}" class="export-link" data-format="xls">
+                        <i class="fas fa-file-excel"></i>
+                        Format Excel (.xls)
+                    </a>
+                    <a href="{% url 'export_orders_pdf' %}" class="export-link" data-format="pdf">
+                        <i class="fas fa-file-pdf"></i>
+                        Format PDF
+                    </a>
+                    <a href="{% url 'export_orders_csv' %}" class="export-link" data-format="csv">
+                        <i class="fas fa-file-csv"></i>
+                        Format CSV
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Statistiques rapides -->
-    <!-- <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon" style="background-color: #e8f5e9;">
-                <i class="fas fa-shopping-cart" style="color: #22c55e;"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Commandes aujourd'hui</h3>
-                <div class="stat-value">24</div>
-                <div class="stat-change increase">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>8.5%</span>
-                    vs hier
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon" style="background-color: #e3f2fd;">
-                <i class="fas fa-euro-sign" style="color: #3b82f6;"></i>
-            </div>
-            <div class="stat-content">
-                <h3>Chiffre d'affaires</h3>
-                <div class="stat-value">3,247 €</div>
-                <div class="stat-change increase">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>12.3%</span>
-                    vs hier
-                </div>
-            </div>
-        </div>
-
+    <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon" style="background-color: #fff7ed;">
                 <i class="fas fa-clock" style="color: #f97316;"></i>
             </div>
             <div class="stat-content">
                 <h3>En attente</h3>
-                <div class="stat-value">8</div>
-                <div class="stat-change decrease">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>4.2%</span>
-                    vs hier
-                </div>
+                <div class="stat-value">{{ stats.pending }}</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd;">
+                <i class="fas fa-spinner" style="color: #3b82f6;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>En cours</h3>
+                <div class="stat-value">{{ stats.processing }}</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e8f5e9;">
+                <i class="fas fa-truck" style="color: #22c55e;"></i>
+            </div>
+            <div class="stat-content">
+                <h3>Expédiées</h3>
+                <div class="stat-value">{{ stats.shipped }}</div>
             </div>
         </div>
 
@@ -76,39 +76,39 @@
             </div>
             <div class="stat-content">
                 <h3>Livrées</h3>
-                <div class="stat-value">16</div>
-                <div class="stat-change increase">
-                    <i class="fas fa-arrow-up"></i>
-                    <span>6.8%</span>
-                    vs hier
-                </div>
+                <div class="stat-value">{{ stats.delivered }}</div>
             </div>
         </div>
-    </div> -->
+    </div>
 
     <!-- Barre d'outils -->
     <div class="toolbar">
         <div class="toolbar-left">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Rechercher une commande..." id="searchOrder">
+                <input type="text" placeholder="Rechercher une commande..." id="searchOrder" value="{{ search_query }}">
             </div>
             
             <div class="filter-group">
                 <select id="statusFilter" class="filter-select">
                     <option value="">Tous les statuts</option>
-                    <option value="pending">En attente</option>
-                    <option value="processing">En cours</option>
-                    <option value="shipped">Expédiée</option>
-                    <option value="delivered">Livrée</option>
-                    <option value="cancelled">Annulée</option>
+                    {% for status_code, status_label in order_status_choices %}
+                    <option value="{{ status_code }}" {% if current_status == status_code %}selected{% endif %}>{{ status_label }}</option>
+                    {% endfor %}
+                </select>
+
+                <select id="paymentFilter" class="filter-select">
+                    <option value="">Tous les paiements</option>
+                    {% for payment_code, payment_label in payment_status_choices %}
+                    <option value="{{ payment_code }}" {% if current_payment == payment_code %}selected{% endif %}>{{ payment_label }}</option>
+                    {% endfor %}
                 </select>
 
                 <select id="dateFilter" class="filter-select">
-                    <option value="today">Aujourd'hui</option>
-                    <option value="week">Cette semaine</option>
-                    <option value="month">Ce mois</option>
-                    <option value="custom">Personnalisé</option>
+                    <option value="all" {% if current_date == 'all' or not current_date %}selected{% endif %}>Toutes les dates</option>
+                    <option value="today" {% if current_date == 'today' %}selected{% endif %}>Aujourd'hui</option>
+                    <option value="week" {% if current_date == 'week' %}selected{% endif %}>Cette semaine</option>
+                    <option value="month" {% if current_date == 'month' %}selected{% endif %}>Ce mois</option>
                 </select>
             </div>
         </div>
@@ -129,7 +129,7 @@
         <table class="orders-table">
             <thead>
                 <tr>
-                    <th>
+                    <th class="checkbox-column">
                         <label class="checkbox-wrapper">
                             <input type="checkbox" id="selectAll">
                             <span class="checkbox-custom"></span>
@@ -137,73 +137,66 @@
                     </th>
                     <th>Commande</th>
                     <th>Client</th>
-                    <th>Date</th>
-                    <th>Total</th>
+                    <th class="date-column">Date</th>
+                    <th class="price-column">Total</th>
                     <th>Statut</th>
-                    <th>Paiement</th>
-                    <th>Actions</th>
+                    <th class="payment-column">Paiement</th>
+                    <th class="actions-column">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for order in orders %}
-                <tr>
-                    <td>
+                <tr data-id="{{ order.id }}" data-order-number="{{ order.order_number }}">
+                    <td class="checkbox-column" data-label="">
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" class="order-select">
+                            <input type="checkbox" class="order-select" data-id="{{ order.id }}">
                             <span class="checkbox-custom"></span>
                         </label>
                     </td>
-                    <td>
+                    <td data-label="Commande">
                         <div class="order-info">
                             <span class="order-id">#{{ order.order_number }}</span>
                             <span class="order-items">{{ order.items.count }} article{% if order.items.count != 1 %}s{% endif %}</span>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Client">
                         <div class="customer-info">
-                            {% if order.customer.profile.image %}
-                                <img src="{{ order.customer.profile.image.url }}" alt="{{ order.customer.get_full_name|default:order.customer.username }}">
-                            {% else %}
-                                <img src="/api/placeholder/32/32" alt="{{ order.customer.get_full_name|default:order.customer.username }}">
-                            {% endif %}
-                            <div>
-                                <h4>{{ order.customer.get_full_name|default:order.customer.username }}</h4>
-                                <span class="customer-email">{{ order.customer.email }}</span>
-                            </div>
+                            <div class="customer-email">{{ order.customer.email }}</div>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Date" class="date-column">
                         <div class="date-info">
                             <span>{{ order.created_at|date:"d M Y" }}</span>
                             <span class="time">{{ order.created_at|date:"H:i" }}</span>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Total" class="price-column">
                         <div class="price-info">
-                            <strong>{{ order.total_amount }} €</strong>
+                            <strong>{{ order.total_amount }} F CFA</strong>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Statut">
                         <span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span>
                     </td>
-                    <td>
+                    <td data-label="Paiement" class="payment-column">
                         <span class="payment-status {{ order.payment_status }}">
                             {% if order.payment_status == "completed" %}
                                 <i class="fas fa-check-circle"></i> Payée
+                            {% elif order.payment_status == "failed" %}
+                                <i class="fas fa-times-circle"></i> Échouée
+                            {% elif order.payment_status == "refunded" %}
+                                <i class="fas fa-undo"></i> Remboursée
                             {% else %}
-                                <i class="fas fa-times-circle"></i> {{ order.get_payment_status_display }}
+                                <i class="fas fa-clock"></i> En attente
                             {% endif %}
                         </span>
                     </td>
-                    <td>
+                    <td data-label="Actions" class="actions-column">
                         <div class="table-actions">
-                            <button class="action-btn" title="Voir">
+                            <button class="action-btn view-btn" title="Voir détails" data-id="{{ order.id }}">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn" title="Modifier">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn" title="Plus d'options">
+                            <button class="action-btn options-btn" title="Plus d'options" data-id="{{ order.id }}">
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                         </div>
@@ -211,7 +204,12 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8">Aucune commande trouvée.</td>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="fas fa-shopping-cart"></i>
+                            <p>Aucune commande trouvée</p>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -219,36 +217,56 @@
     </div>
 
     <!-- Pagination -->
-    <!-- <div class="table-pagination">
+    {% if orders.has_other_pages %}
+    <div class="table-pagination">
         <div class="pagination-info">
-            Affichage de 1-10 sur {{ orders|length }} commandes
+            Affichage des commandes {{ orders.start_index }}-{{ orders.end_index }} sur {{ orders.paginator.count }}
         </div>
         <div class="pagination-controls">
+            {% if orders.has_previous %}
+            <a href="?page={{ orders.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_payment %}&payment={{ current_payment }}{% endif %}{% if current_date %}&date={{ current_date }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-chevron-left"></i>
+                Précédent
+            </a>
+            {% else %}
             <button class="btn btn-outline btn-sm" disabled>
                 <i class="fas fa-chevron-left"></i>
                 Précédent
             </button>
+            {% endif %}
+            
             <div class="pagination-pages">
-                <button class="page-btn active">1</button>
-                <button class="page-btn">2</button>
-                <button class="page-btn">3</button>
-                <span>...</span>
-                <button class="page-btn">N</button>
+                {% for i in orders.paginator.page_range %}
+                    {% if orders.number == i %}
+                        <button class="page-btn active">{{ i }}</button>
+                    {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+                        <a href="?page={{ i }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_payment %}&payment={{ current_payment }}{% endif %}{% if current_date %}&date={{ current_date }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="page-btn">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
             </div>
-            <button class="btn btn-outline btn-sm">
+            
+            {% if orders.has_next %}
+            <a href="?page={{ orders.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_payment %}&payment={{ current_payment }}{% endif %}{% if current_date %}&date={{ current_date }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="btn btn-outline btn-sm">
+                Suivant
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% else %}
+            <button class="btn btn-outline btn-sm" disabled>
                 Suivant
                 <i class="fas fa-chevron-right"></i>
             </button>
+            {% endif %}
         </div>
-    </div> -->
+    </div>
+    {% endif %}
 </div>
 
 <!-- Modal de détail de commande -->
 <div class="modal" id="orderDetailModal">
     <div class="modal-content modal-lg">
         <div class="modal-header">
-            <h2>Détails de la commande #ORD-XXX</h2>
-            <button class="close-modal">×</button>
+            <h2>Détails de la commande <span id="modalOrderNumber"></span></h2>
+            <button class="close-modal" type="button">&times;</button>
         </div>
         <div class="modal-body">
             <!-- Contenu détaillé de la commande -->
@@ -259,18 +277,67 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <label>Statut</label>
-                            <span class="status-badge pending">En attente</span>
+                            <div class="status-selector">
+                                <span class="status-badge" id="orderStatusBadge"></span>
+                                <button class="status-change-btn" type="button"><i class="fas fa-pen"></i></button>
+                                <div class="status-dropdown">
+                                    {% for status_code, status_label in order_status_choices %}
+                                    <div class="status-option" data-status="{{ status_code }}">
+                                        <span class="status-badge {{ status_code }}">{{ status_label }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                         <div class="info-item">
                             <label>Date</label>
-                            <span>10 Fév 2024 14:30</span>
+                            <span id="orderDate"></span>
                         </div>
                         <div class="info-item">
-                            <label>Paiement</label>
-                            <span class="payment-status completed">
-                                <i class="fas fa-check-circle"></i>
-                                Payée - Carte bancaire
-                            </span>
+                            <label>Méthode de paiement</label>
+                            <span id="paymentMethod"></span>
+                        </div>
+                        <!-- <div class="info-item">
+                            <label>Statut du paiement</label>
+                            <span class="payment-status" id="paymentStatus"></span>
+                        </div> -->
+                        <!-- Dans le modal de détail de commande -->
+                        <div class="info-item">
+                            <label>Statut du paiement</label>
+                            <div class="status-selector">
+                                <span class="payment-status" id="paymentStatus"></span>
+                                <button class="status-change-btn payment-status-btn" type="button"><i class="fas fa-pen"></i></button>
+                                <div class="status-dropdown payment-status-dropdown">
+                                    {% for status_code, status_label in payment_status_choices %}
+                                    <div class="status-option payment-status-option" data-status="{{ status_code }}">
+                                        <span class="payment-status {{ status_code }}">
+                                            {% if status_code == "completed" %}
+                                                <i class="fas fa-check-circle"></i> {{ status_label }}
+                                            {% elif status_code == "failed" %}
+                                                <i class="fas fa-times-circle"></i> {{ status_label }}
+                                            {% elif status_code == "refunded" %}
+                                                <i class="fas fa-undo"></i> {{ status_label }}
+                                            {% else %}
+                                                <i class="fas fa-clock"></i> {{ status_label }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <label>N° de suivi</label>
+                            <div class="tracking-number-wrapper">
+                                <span id="trackingNumber">Non disponible</span>
+                                <button class="tracking-edit-btn" id="editTrackingBtn" type="button">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <label>Livraison estimée</label>
+                            <span id="estimatedDelivery">Non disponible</span>
                         </div>
                     </div>
                 </div>
@@ -280,16 +347,17 @@
                     <h3>Client</h3>
                     <div class="customer-details">
                         <div class="customer-info">
-                            <img src="/api/placeholder/48/48" alt="Jean Dupont">
+                            <img src="/api/placeholder/48/48" alt="" id="customerImg">
                             <div>
-                                <h4>Jean Dupont</h4>
-                                <span>Client depuis Jan 2024</span>
+                                <h4 id="customerName"></h4>
+                                <span id="customerSince"></span>
                             </div>
                         </div>
                         <div class="contact-info">
-                            <p><i class="fas fa-envelope"></i> jean@example.com</p>
-                            <p><i class="fas fa-phone"></i> +33 1 23 45 67 89</p>
+                            <p><i class="fas fa-envelope"></i> <span id="customerEmail"></span></p>
+                            <p><i class="fas fa-calendar"></i> <span id="orderCount"></span> commande(s)</p>
                         </div>
+                        
                     </div>
                 </div>
 
@@ -297,122 +365,61 @@
                 <div class="addresses-grid">
                     <div class="address-card">
                         <h4>Adresse de livraison</h4>
-                        <p>Jean Dupont</p>
-                        <p>123 Rue du Commerce</p>
-                        <p>75001 Paris</p>
-                        <p>France</p>
+                        <div id="shippingAddress"></div>
                     </div>
                     <div class="address-card">
                         <h4>Adresse de facturation</h4>
-                        <p>Jean Dupont</p>
-                        <p>123 Rue du Commerce</p>
-                        <p>75001 Paris</p>
-                        <p>France</p>
+                        <div id="billingAddress"></div>
                     </div>
                 </div>
 
                 <!-- Produits -->
                 <div class="detail-section full-width">
                     <h3>Produits</h3>
-                    <table class="products-table">
-                        <thead>
-                            <tr>
-                                <th>Produit</th>
-                                <th>Prix unitaire</th>
-                                <th>Quantité</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="product-info">
-                                        <img src="/api/placeholder/40/40" alt="Produit">
-                                        <div>
-                                            <h4>Smartphone XYZ</h4>
-                                            <span>SKU: PRD-123</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>199.99 €</td>
-                                <td>1</td>
-                                <td>199.99 €</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="2"></td>
-                                <td>Sous-total</td>
-                                <td>199.99 €</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2"></td>
-                                <td>Livraison</td>
-                                <td>9.99 €</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2"></td>
-                                <td>TVA (20%)</td>
-                                <td>42.00 €</td>
-                            </tr>
-                            <tr class="total-row">
-                                <td colspan="2"></td>
-                                <td>Total</td>
-                                <td>251.98 €</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Prix unitaire</th>
+                                    <th>Quantité</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderItemsTable">
+                                <!-- Contenu généré dynamiquement -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2"></td>
+                                    <td>Sous-total</td>
+                                    <td id="subtotalValue"></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2"></td>
+                                    <td>TVA (20%)</td>
+                                    <td id="taxValue"></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2"></td>
+                                    <td>Livraison</td>
+                                    <td id="shippingValue"></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="2"></td>
+                                    <td>Total</td>
+                                    <td id="totalValue"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Historique -->
                 <div class="detail-section full-width">
                     <h3>Historique</h3>
-                    <div class="order-timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h4>Commande passée</h4>
-                                <p>10 Fév 2024 14:30</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h4>Paiement confirmé</h4>
-                                <p>10 Fév 2024 14:31</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item current">
-                            <div class="timeline-icon">
-                                <i class="fas fa-box"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h4>En préparation</h4>
-                                <p>10 Fév 2024 15:00</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-truck"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h4>Expédition prévue</h4>
-                                <p>11 Fév 2024</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h4>Livraison prévue</h4>
-                                <p>12 Fév 2024</p>
-                            </div>
-                        </div>
+                    <div class="order-timeline" id="orderTimeline">
+                        <!-- Timeline généré dynamiquement -->
                     </div>
                 </div>
 
@@ -421,47 +428,44 @@
                     <h3>Notes</h3>
                     <div class="notes-section">
                         <div class="note-box">
-                            <textarea placeholder="Ajouter une note..." rows="3"></textarea>
-                            <div class="note-actions">
-                                <button class="btn btn-outline btn-sm">
-                                    <i class="fas fa-paperclip"></i>
-                                    Joindre
-                                </button>
-                                <button class="btn btn-primary btn-sm">
-                                    Ajouter
-                                </button>
-                            </div>
-                        </div>
-                        <div class="notes-list">
-                            <div class="note-item">
-                                <div class="note-header">
-                                    <div class="note-author">
-                                        <img src="/api/placeholder/24/24" alt="Admin">
-                                        <span>Admin</span>
-                                    </div>
-                                    <span class="note-date">10 Fév 2024 14:45</span>
+                            <form id="noteForm">
+                                <textarea placeholder="Ajouter une note..." rows="3" id="newNoteText" name="note_text" required></textarea>
+                                <div class="note-actions">
+                                    <button class="btn btn-outline btn-sm" id="attachFileBtn" type="button">
+                                        <i class="fas fa-paperclip"></i>
+                                        Joindre
+                                    </button>
+                                    <button class="btn btn-primary btn-sm" id="addNoteBtn" type="submit">
+                                        Ajouter
+                                    </button>
                                 </div>
-                                <p>Client contacté par téléphone pour confirmer l'adresse de livraison.</p>
-                            </div>
+                                <input type="file" id="noteAttachment" name="attachment" style="display: none;">
+                                <input type="hidden" id="orderIdForNote" name="order_id">
+                            </form>
+                        </div>
+                        <div class="notes-list" id="orderNotes">
+                            <!-- Notes générées dynamiquement -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <div class="modal-actions-left">
-                <button class="btn btn-outline btn-sm">
-                    <i class="fas fa-print"></i>
-                    Imprimer
-                </button>
-                <button class="btn btn-outline btn-sm">
-                    <i class="fas fa-file-pdf"></i>
-                    Générer PDF
-                </button>
-            </div>
-            <div class="modal-actions-right">
-                <button class="btn btn-outline" data-dismiss="modal">Fermer</button>
-                <button class="btn btn-primary">Mettre à jour</button>
+            <div class="modal-actions">
+                <div class="modal-actions-left">
+                    <button class="btn btn-outline btn-sm" id="printInvoiceBtn" type="button">
+                        <i class="fas fa-print"></i>
+                        <span class="btn-text">Imprimer</span>
+                    </button>
+                    <a class="btn btn-outline btn-sm" id="generateInvoiceBtn" target="_blank">
+                        <i class="fas fa-file-pdf"></i>
+                        <span class="btn-text">Télécharger Facture</span>
+                    </a>
+                </div>
+                <div class="modal-actions-right">
+                    <button class="btn btn-outline" data-dismiss="modal" type="button">Fermer</button>
+                    <button class="btn btn-primary" id="updateOrderBtn" type="button">Mettre à jour</button>
+                </div>
             </div>
         </div>
     </div>
@@ -472,29 +476,58 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2>Mise à jour groupée</h2>
-            <button class="close-modal">×</button>
+            <button class="close-modal" type="button">&times;</button>
         </div>
         <div class="modal-body">
-            <div class="form-group">
-                <label for="batchStatus">Statut</label>
-                <select id="batchStatus" class="form-control">
-                    <option value="">Sélectionner un statut</option>
-                    <option value="processing">En cours</option>
-                    <option value="shipped">Expédiée</option>
-                    <option value="delivered">Livrée</option>
-                    <option value="cancelled">Annulée</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="batchNote">Note</label>
-                <textarea id="batchNote" class="form-control" rows="3" placeholder="Ajouter une note pour toutes les commandes sélectionnées..."></textarea>
-            </div>
-            
+            <form id="batchUpdateForm">
+                <div class="form-group">
+                    <label for="batchStatus">Statut</label>
+                    <select id="batchStatus" class="form-control" name="status" required>
+                        <option value="">Sélectionner un statut</option>
+                        {% for status_code, status_label in order_status_choices %}
+                        <option value="{{ status_code }}">{{ status_label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="batchNote">Note</label>
+                    <textarea id="batchNote" class="form-control" rows="3" name="note" placeholder="Ajouter une note pour toutes les commandes sélectionnées..."></textarea>
+                </div>
+                
+                <input type="hidden" id="batchOrderIds" name="order_ids">
+            </form>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" data-dismiss="modal">Annuler</button>
-            <button class="btn btn-primary" id="confirmBatchUpdate">Mettre à jour</button>
+            <div class="modal-actions">
+                <button class="btn btn-outline" data-dismiss="modal" type="button">Annuler</button>
+                <button class="btn btn-primary" id="confirmBatchUpdate" type="button">Mettre à jour</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de numéro de suivi -->
+<div class="modal" id="trackingModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Modifier le numéro de suivi</h2>
+            <button class="close-modal" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="trackingForm">
+                <div class="form-group">
+                    <label for="trackingNumberInput">Numéro de suivi</label>
+                    <input type="text" id="trackingNumberInput" name="tracking_number" class="form-control" placeholder="Entrez le numéro de suivi">
+                </div>
+                <input type="hidden" id="trackingOrderId" name="order_id">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-actions">
+                <button class="btn btn-outline" data-dismiss="modal" type="button">Annuler</button>
+                <button class="btn btn-primary" id="saveTrackingBtn" type="button">Enregistrer</button>
+            </div>
         </div>
     </div>
 </div>
@@ -504,21 +537,113 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2>Confirmation</h2>
-            <button class="close-modal">×</button>
+            <button class="close-modal" type="button">&times;</button>
         </div>
         <div class="modal-body">
             <div class="confirmation-message">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>Êtes-vous sûr de vouloir effectuer cette action ?</p>
+                <p id="confirmationText">Êtes-vous sûr de vouloir effectuer cette action ?</p>
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" data-dismiss="modal">Annuler</button>
-            <button class="btn btn-danger" id="confirmAction">Confirmer</button>
+            <div class="modal-actions">
+                <button class="btn btn-outline" data-dismiss="modal" type="button">Annuler</button>
+                <button class="btn btn-danger" id="confirmAction" type="button">Confirmer</button>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Menu contextuel options -->
+<div class="options-menu" id="optionsMenu" style="display: none;">
+    <div class="options-menu-header">
+        <span>Actions</span>
+        <button class="close-options-menu" type="button">&times;</button>
+    </div>
+    <div class="options-menu-items">
+        <a href="#" class="options-menu-item" id="viewInvoiceLink" target="_blank">
+            <i class="fas fa-file-pdf"></i>
+            <span>Télécharger Facture</span>
+        </a>
+        <button class="options-menu-item" data-action="view" type="button">
+            <i class="fas fa-eye"></i>
+            <span>Voir les détails</span>
+        </button>
+        <button class="options-menu-item status-action" data-status="pending" type="button">
+            <i class="fas fa-clock"></i>
+            <span>Marquer En attente</span>
+        </button>
+        <button class="options-menu-item status-action" data-status="processing" type="button">
+            <i class="fas fa-spinner"></i>
+            <span>Marquer En cours</span>
+        </button>
+        <button class="options-menu-item status-action" data-status="shipped" type="button">
+            <i class="fas fa-truck"></i>
+            <span>Marquer Expédiée</span>
+        </button>
+        <button class="options-menu-item status-action" data-status="delivered" type="button">
+            <i class="fas fa-check-circle"></i>
+            <span>Marquer Livrée</span>
+        </button>
+        <button class="options-menu-item status-action warning" data-status="cancelled" type="button">
+            <i class="fas fa-times-circle"></i>
+            <span>Marquer Annulée</span>
+        </button>
+    </div>
+</div>
+
+<!-- Template pour les éléments dynamiques -->
+<template id="timelineItemTemplate">
+    <div class="timeline-item">
+        <div class="timeline-icon">
+            <i class="fas"></i>
+        </div>
+        <div class="timeline-content">
+            <h4></h4>
+            <p></p>
+        </div>
+    </div>
+</template>
+
+<template id="noteItemTemplate">
+    <div class="note-item">
+        <div class="note-header">
+            <div class="note-author">
+                <img src="/api/placeholder/24/24" alt="">
+                <span></span>
+            </div>
+            <span class="note-date"></span>
+        </div>
+        <p></p>
+    </div>
+</template>
+
+<!-- CSRF Token pour les requêtes AJAX -->
+{% csrf_token %}
+
 <script src="{% static 'js/dashboard/order.js' %}"></script>
+
+<script>
+    // Variables pour le JavaScript
+    window.orderStatusChoices = {
+        {% for status_code, status_label in order_status_choices %}
+        "{{ status_code }}": "{{ status_label }}",
+        {% endfor %}
+    };
+    
+    window.paymentStatusChoices = {
+        {% for status_code, status_label in payment_status_choices %}
+        "{{ status_code }}": "{{ status_label }}",
+        {% endfor %}
+    };
+    
+    window.paymentMethodChoices = {
+        {% for method_code, method_label in payment_method_choices %}
+        "{{ method_code }}": "{{ method_label }}",
+        {% endfor %}
+    };
+    
+    window.csrfToken = "{{ csrf_token }}";
+</script>
 
 {% endblock %}

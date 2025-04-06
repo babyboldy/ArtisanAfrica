@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.y.toLocaleString() + ' €';
+                                return context.parsed.y.toLocaleString() + ' F CFA';
                             }
                         }
                     }
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         beginAtZero: true,
                         grid: { color: colors.lightGray },
                         ticks: { 
-                            callback: value => value.toLocaleString() + ' €',
+                            callback: value => value.toLocaleString() + ' F CFA',
                             font: { size: 11 }
                         }
                     },
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!isNaN(value) && value > 0) {
                 // Animation progressive
-                animateCounter(element, 0, value, 1500, text.includes('€'));
+                animateCounter(element, 0, value, 1500, text.includes('F CFA'));
             }
         });
     }
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let current = start;
         const format = num => {
             return isCurrency
-                ? num.toLocaleString() + ' €'
+                ? num.toLocaleString() + ' F CFA'
                 : num.toLocaleString();
         };
 

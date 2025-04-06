@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('customerGender').textContent = customerData.gender || '-';
         document.getElementById('customerBirthDate').textContent = customerData.birth || '-';
         document.getElementById('customerOrders').textContent = customerData.orders;
-        document.getElementById('customerSpent').textContent = `${customerData.spent} €`;
+        document.getElementById('customerSpent').textContent = `${customerData.spent} F CFA`;
         document.getElementById('customerLastOrder').textContent = customerData.lastorder || 'Aucune commande';
         document.getElementById('customerJoinDate').textContent = customerData.joined;
 

@@ -13,12 +13,12 @@
             <p class="text-muted">Gérez vos notifications et alertes</p>
         </div>
         <div class="header-right">
-            <form action="{% url 'mark_all_read' %}" method="post" style="display: inline;">
+            <!-- <form action="{% url 'mark_all_read' %}" method="post" style="display: inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline" id="markAllReadBtn">
                     <i class="fas fa-check-double"></i> Tout marquer comme lu
                 </button>
-            </form>
+            </form> -->
             <!-- <form action="{% url 'clear_all_notifications' %}" method="post" style="display: inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-outline-danger" id="clearAllBtn" 
@@ -147,7 +147,6 @@
             <p>Êtes-vous sûr de vouloir effectuer cette action ?</p>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-outline" data-dismiss="modal">Annuler</button>
             <button class="btn btn-danger" id="confirmAction">Confirmer</button>
         </div>
     </div>

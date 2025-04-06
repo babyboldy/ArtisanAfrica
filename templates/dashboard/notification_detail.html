@@ -151,7 +151,7 @@
                         {% endif %}
                         <span class="item-quantity">Quantité: {{ item.quantity }}</span>
                     </div>
-                    <div class="item-price">{{ item.unit_price }} € x {{ item.quantity }} = {{ item.total_price }} €</div>
+                    <div class="item-price">{{ item.unit_price }} F CFA x {{ item.quantity }} = {{ item.total_price }} F CFA</div>
                 </div>
                 {% empty %}
                 <div class="empty-state">
@@ -165,19 +165,19 @@
             <div class="order-total">
                 <div class="total-line">
                     <span>Sous-total</span>
-                    <span>{{ order.subtotal }} €</span>
+                    <span>{{ order.subtotal }} F CFA</span>
                 </div>
                 <div class="total-line">
                     <span>TVA (20%)</span>
-                    <span>{{ order.tax_amount }} €</span>
+                    <span>{{ order.tax_amount }} F CFA</span>
                 </div>
                 <div class="total-line">
                     <span>Livraison</span>
-                    <span>{% if order.shipping_cost == 0 %}Gratuite{% else %}{{ order.shipping_cost }} €{% endif %}</span>
+                    <span>{% if order.shipping_cost == 0 %}Gratuite{% else %}{{ order.shipping_cost }} F CFA{% endif %}</span>
                 </div>
                 <div class="total-line final-total">
                     <span>Total</span>
-                    <span>{{ order.total_amount }} €</span>
+                    <span>{{ order.total_amount }} F CFA</span>
                 </div>
             </div>
         </div>
