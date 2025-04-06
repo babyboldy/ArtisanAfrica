@@ -62,7 +62,19 @@
             </thead>
             <tbody>
                 {% for customer in customers %}
-                <tr>
+                <tr class="view-customer" 
+                    data-id="{{ customer.id }}"
+                    data-name="{{ customer.get_full_name }}"
+                    data-email="{{ customer.email }}"
+                    data-phone="{{ customer.phone|default:'-' }}"
+                    data-gender="{{ customer.gender|default:'-' }}"
+                    data-birth="{{ customer.birth_date|date:'d/m/Y'|default:'-' }}"
+                    data-orders="{{ customer.total_orders }}"
+                    data-spent="{{ customer.total_spent }}"
+                    data-lastorder="{% if customer.last_order_date %}{{ customer.last_order_date|date:'d/m/Y' }}{% else %}Aucune commande{% endif %}"
+                    data-joined="{{ customer.date_joined|date:'d/m/Y' }}"
+                    data-status="{% if customer.account_status %}Actif{% else %}Bloqué{% endif %}"
+                    data-picture="{% if customer.profile_picture %}{{ customer.profile_picture.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}">
                     <td>
                         <div class="customer-info">
                             {% if customer.profile_picture %}
@@ -109,7 +121,7 @@
                     </td>
                     <td>
                         <div class="table-actions">
-                            <button class="action-btn view-customer"
+                            <button class="action-btn view-customer-btn"
                                 data-id="{{ customer.id }}"
                                 data-name="{{ customer.get_full_name }}"
                                 data-email="{{ customer.email }}"
@@ -124,7 +136,6 @@
                                 data-picture="{% if customer.profile_picture %}{{ customer.profile_picture.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}">
                                 <i class="fas fa-eye"></i>
                             </button>
-
 
                             <form method="POST" style="display: inline;">
                                 {% csrf_token %}
@@ -141,8 +152,6 @@
                                     </button>
                                 {% endif %}
                             </form>
-
-                            
                         </div>
                     </td>
                 </tr>
@@ -151,6 +160,7 @@
                     <td colspan="7" class="text-center">Aucun client trouvé.</td>
                 </tr>
                 {% endfor %}
+
             </tbody>
         </table>
     </div>
