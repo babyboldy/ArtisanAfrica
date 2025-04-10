@@ -1,3 +1,4 @@
+
 /* profil-client.css */
 
 /* Container principal avec ajustement pour le header fixe */
@@ -13,7 +14,8 @@
 .profile-header h1 {
     font-size: 2rem;
     margin-bottom: 0.5rem;
-    color: #333;
+    color: #191919;
+    font-family: 'Playfair Display', serif;
 }
 
 .profile-header p {
@@ -24,7 +26,7 @@
 .profile-wrapper {
     display: flex;
     gap: 2rem;
-    background-color: #fff;
+    background-color: #F5F5DC;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     overflow: hidden;
@@ -33,14 +35,14 @@
 /* Sidebar */
 .profile-sidebar {
     flex: 0 0 280px;
-    background-color: #f8f9fa;
+    background-color: #F5F5DC;
     padding: 0;
     border-right: 1px solid #eee;
 }
 
 .user-info {
     padding: 2rem 1.5rem;
-    background-color: #007bff;
+    background-color: #C96112;
     color: white;
     text-align: center;
 }
@@ -83,7 +85,7 @@
 
 .profile-nav .nav-item {
     padding: 1rem 1.5rem;
-    color: #333;
+    color: #191919;
     text-decoration: none;
     transition: all 0.2s ease;
     border-left: 3px solid transparent;
@@ -98,26 +100,26 @@
 }
 
 .profile-nav .nav-item:hover {
-    background-color: rgba(0, 123, 255, 0.05);
-    color: #007bff;
+    background-color: rgba(201, 97, 18, 0.05);
+    color: #C96112;
 }
 
 .profile-nav .nav-item.active {
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #007bff;
-    border-left-color: #007bff;
+    background-color: rgba(201, 97, 18, 0.1);
+    color: #C96112;
+    border-left-color: #C96112;
     font-weight: 500;
 }
 
 .profile-nav .nav-item.logout {
     margin-top: auto;
-    color: #dc3545;
+    color: #C96112;
     border-top: 1px solid #eee;
     margin-top: 2rem;
 }
 
 .profile-nav .nav-item.logout:hover {
-    background-color: rgba(220, 53, 69, 0.05);
+    background-color: rgba(201, 97, 18, 0.05);
 }
 
 /* Contenu principal */
@@ -145,8 +147,9 @@
 
 .section-header h2 {
     font-size: 1.5rem;
-    color: #333;
+    color: #191919;
     margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
 }
 
 .section-header p {
@@ -189,9 +192,9 @@
 
 .form-group input:focus,
 .form-group select:focus {
-    border-color: #007bff;
+    border-color: #C96112;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(201, 97, 18, 0.1);
 }
 
 .form-check {
@@ -204,7 +207,7 @@
 .form-check input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #007bff;
+    accent-color: #C96112;
 }
 
 .form-actions {
@@ -251,7 +254,7 @@
 .avatar-edit label {
     display: inline-block;
     padding: 0.6rem 1.25rem;
-    background-color: #007bff;
+    background-color: #C96112;
     color: white;
     border-radius: 4px;
     cursor: pointer;
@@ -261,7 +264,7 @@
 }
 
 .avatar-edit label:hover {
-    background-color: #0069d9;
+    background-color: #DAA520;
 }
 
 /* Boutons */
@@ -281,22 +284,22 @@
 }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #C96112;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #0069d9;
+    background-color: #DAA520;
 }
 
 .btn-outline {
     background-color: transparent;
-    color: #007bff;
-    border: 1px solid #007bff;
+    color: #C96112;
+    border: 1px solid #C96112;
 }
 
 .btn-outline:hover {
-    background-color: rgba(0, 123, 255, 0.05);
+    background-color: rgba(201, 97, 18, 0.05);
 }
 
 /* Adresses */
@@ -316,7 +319,7 @@
 
 .address-card:hover {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    border-color: #007bff;
+    border-color: #C96112;
 }
 
 .address-header {
@@ -328,14 +331,14 @@
 
 .address-header h3 {
     font-size: 1.1rem;
-    color: #333;
+    color: #191919;
 }
 
 .badge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #007bff;
+    background-color: rgba(201, 97, 18, 0.1);
+    color: #C96112;
     font-size: 0.75rem;
     border-radius: 20px;
     font-weight: 500;
@@ -367,11 +370,11 @@
 }
 
 .address-actions button:hover {
-    color: #007bff;
+    color: #C96112;
 }
 
 .address-actions .btn-delete-address:hover {
-    color: #dc3545;
+    color: #C96112;
 }
 
 .add-address-container {
@@ -398,7 +401,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
-    background-color: #f8f9fa;
+    background-color: #F5F5DC;
     border-bottom: 1px solid #eee;
 }
 
@@ -421,27 +424,27 @@
 
 .order-status.pending {
     background-color: rgba(255, 193, 7, 0.1);
-    color: #ff9800;
+    color: #DAA520;
 }
 
 .order-status.processing {
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #007bff;
+    background-color: rgba(201, 97, 18, 0.1);
+    color: #C96112;
 }
 
 .order-status.shipped {
     background-color: rgba(0, 150, 136, 0.1);
-    color: #009688;
+    color: #808000;
 }
 
 .order-status.delivered {
     background-color: rgba(40, 167, 69, 0.1);
-    color: #28a745;
+    color: #808000;
 }
 
 .order-status.cancelled {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+    background-color: rgba(201, 97, 18, 0.1);
+    color: #C96112;
 }
 
 .order-summary {
@@ -465,7 +468,7 @@
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
-    background-color: #f8f9fa;
+    background-color: #F5F5DC;
     border-radius: 8px;
     margin-bottom: 2rem;
 }
@@ -478,7 +481,7 @@
 
 .empty-state h3 {
     font-size: 1.25rem;
-    color: #333;
+    color: #191919;
     margin-bottom: 0.5rem;
 }
 
@@ -508,12 +511,12 @@
 }
 
 .toggle-password:hover {
-    color: #007bff;
+    color: #C96112;
 }
 
 /* Exigences de mot de passe */
 .password-requirements {
-    background-color: #f8f9fa;
+    background-color: #F5F5DC;
     padding: 1.25rem;
     border-radius: 8px;
     margin: 1.5rem 0;
@@ -539,7 +542,7 @@
 }
 
 .requirement.valid i {
-    color: #28a745;
+    color: #808000;
 }
 
 /* Messages d'alerte */
@@ -560,20 +563,20 @@
 
 .alert-success {
     background-color: rgba(40, 167, 69, 0.1);
-    color: #28a745;
-    border-left: 4px solid #28a745;
+    color: #808000;
+    border-left: 4px solid #808000;
 }
 
 .alert-error {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
-    border-left: 4px solid #dc3545;
+    background-color: rgba(201, 97, 18, 0.1);
+    color: #C96112;
+    border-left: 4px solid #C96112;
 }
 
 .alert-info {
-    background-color: rgba(0, 123, 255, 0.1);
-    color: #007bff;
-    border-left: 4px solid #007bff;
+    background-color: rgba(201, 97, 18, 0.1);
+    color: #C96112;
+    border-left: 4px solid #C96112;
 }
 
 .close-alert {
@@ -626,7 +629,7 @@
 
 .modal-content h2 {
     margin-bottom: 1.5rem;
-    color: #333;
+    color: #191919;
     font-size: 1.5rem;
     padding: 1.5rem 1.5rem 0;
 }
@@ -646,7 +649,7 @@
 }
 
 .modal .close:hover {
-    color: #333;
+    color: #191919;
 }
 
 .modal-actions {
@@ -693,31 +696,31 @@
     .profile-wrapper {
         flex-direction: column;
     }
-    
+
     .profile-sidebar {
         flex: none;
         border-right: none;
         border-bottom: 1px solid #eee;
     }
-    
+
     .user-info {
         display: flex;
         align-items: center;
         text-align: left;
         gap: 1.5rem;
     }
-    
+
     .user-avatar {
         margin: 0;
     }
-    
+
     .profile-nav {
         flex-direction: row;
         flex-wrap: wrap;
         gap: 0.5rem;
         padding: 1rem;
     }
-    
+
     .profile-nav .nav-item {
         flex: 1 1 auto;
         min-width: 150px;
@@ -726,17 +729,17 @@
         justify-content: center;
         padding: 0.75rem 1rem;
     }
-    
+
     .profile-nav .nav-item.active {
         border-left-color: transparent;
-        border-bottom-color: #007bff;
+        border-bottom-color: #C96112;
     }
-    
+
     .profile-nav .nav-item.logout {
         margin-top: 0;
         border-top: none;
     }
-    
+
     .form-row {
         flex-direction: column;
         gap: 0;
@@ -749,22 +752,22 @@
         align-items: center;
         text-align: center;
     }
-    
+
     .addresses-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .order-header,
     .order-summary {
         flex-direction: column;
         gap: 0.5rem;
         align-items: flex-start;
     }
-    
+
     .order-actions {
         flex-direction: column;
     }
-    
+
     .order-actions a {
         width: 100%;
         justify-content: center;

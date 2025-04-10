@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}E-Shop{% endblock %}</title>
+    <title>{% block title %}ArtisanAfrica{% endblock %}</title>
 
     <!-- Styles principaux -->
     <link rel="stylesheet" href="{% static 'css/website/styles.css' %}">
@@ -21,7 +21,7 @@
 
     <header class="header">
         <nav class="nav-container">
-            <a href="{% url 'home' %}" class="logo">E-Shop</a>
+            <a href="{% url 'home' %}" class="logo">ArtisanAfrica</a>
     
             <div class="burger-menu">
                 <div class="burger-line"></div>
@@ -32,7 +32,21 @@
             <ul class="nav-links" id="nav-links">
                 <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a></li>
                 <li><a href="{% url 'products' %}"
-                        class="{% if request.path == '/products/' %}active{% endif %}">Produits</a></li>
+                        class="{% if request.path == '/products/' %}active{% endif %}">Boutique</a></li>
+
+                <!-- Ajouter url artisanat -->
+                <li><a href="{% url 'contact' %}"
+                            class="{% if request.path == '/contact/' %}active{% endif %}">Artisans</a></li> 
+                                 
+                            
+                <!-- Ajouter url Blog -->
+                <li><a href="{% url 'contact' %}"
+                    class="{% if request.path == '/contact/' %}active{% endif %}">Blog</a></li>  
+                    
+                <!-- Ajouter url Apropos -->
+                <li><a href="{% url 'contact' %}"
+                    class="{% if request.path == '/contact/' %}active{% endif %}">A propos</a></li> 
+                            
                 <li><a href="{% url 'contact' %}"
                         class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a></li>
     
@@ -71,30 +85,45 @@
         <div class="footer-container">
             <div class="footer-section">
                 <h3>À propos</h3>
-                <p>E-Shop est votre destination shopping en ligne.</p>
-            </div>
-
-            <div class="footer-section">
-                <h3>Liens rapides</h3>
-                <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a>
-                <a href="{% url 'products' %}"
-                    class="{% if request.path == '/products/' %}active{% endif %}">Produits</a>
-                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a>
-            </div>
-
-            <div class="footer-section">
-                <h3>Contact</h3>
-                <p>Email: contact@eshop.com</p>
-                <p>Téléphone: +33 1 23 45 67 89</p>
-            </div>
-
-            <div class="footer-section">
-                <h3>Suivez-nous</h3>
+                <p>La plateforme qui valorise l'artisanat africain authentique et soutient les artisans locaux.</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-facebook-f"></i></a>
                     <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
                     <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Liens rapides</h3>
+                <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a>
+                
+                <a href="{% url 'products' %}"
+                    class="{% if request.path == '/products/' %}active{% endif %}">Boutique</a>
+
+                        <!-- Réference  à ajouter -->
+                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Blog</a>
+                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Devenir vendeur</a>
+
+
+
+            </div>
+
+            <div class="footer-section">
+                <h3>Information</h3>
+                <p>À propos</p>
+                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a>
+                <p>Conditions d'utilisation</p>
+                <p>Politique de confidentialité</p>
+                <p>FAQ</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>Carrefour du Village Artisanale</p>
+                <p>Citydia, Grand-Bassam</p>
+                <p>contact@artisanAfrican.com</p>
+                <p>+225 070 864 29 74</p>
                 </div>
             </div>
         </div>

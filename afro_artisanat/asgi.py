@@ -1,5 +1,5 @@
 """
-ASGI config for vido_e_commerce project.
+ASGI config for afro_artisanat project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vido_e_commerce.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'afro_artisanat.settings')
 
 application = get_asgi_application()

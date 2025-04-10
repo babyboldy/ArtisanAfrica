@@ -1,5 +1,5 @@
 """
-URL configuration for vido_e_commerce project.
+URL configuration for afro_artisanat project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/

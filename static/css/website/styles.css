@@ -1,41 +1,42 @@
+
 /* styles.css - Styles principaux pour tout le site */
 
 /* Variables CSS pour la cohérence du design */
 :root {
     /* Couleurs */
-    --primary-color: #007bff;
-    --primary-hover: #0056b3;
-    --primary-light: #e6f0ff;
-    --primary-dark: #004499;
+    --primary-color: #C96112;
+    --primary-hover: #DAA520;
+    --primary-light: #F5F5DC;
+    --primary-dark: #808000;
 
-    --secondary-color: #6c757d;
-    --secondary-hover: #5a6268;
+    --secondary-color: #191919;
+    --secondary-hover: #DAA520;
 
-    --success-color: #28a745;
-    --success-hover: #218838;
-    --success-light: #e8f5e9;
+    --success-color: #808000;
+    --success-hover: #6B8E23;
+    --success-light: #F0F8ED;
 
-    --warning-color: #ffc107;
-    --warning-hover: #e0a800;
+    --warning-color: #DAA520;
+    --warning-hover: #B8860B;
 
-    --danger-color: #dc3545;
-    --danger-hover: #c82333;
-    --danger-light: #ffebee;
+    --danger-color: #C96112;
+    --danger-hover: #A0522D;
+    --danger-light: #F8E7E3;
 
-    --info-color: #17a2b8;
-    --info-hover: #138496;
+    --info-color: #191919;
+    --info-hover: #DAA520;
 
     /* Neutrals */
-    --text-primary: #212529;
+    --text-primary: #191919;
     --text-secondary: #495057;
     --text-muted: #6c757d;
     --text-light: #adb5bd;
     --text-white: #ffffff;
 
     --bg-white: #ffffff;
-    --bg-light: #f8f9fa;
+    --bg-light: #F5F5DC;
     --bg-gray: #f1f3f5;
-    --bg-dark: #343a40;
+    --bg-dark: #191919;
 
     --border-color: #dee2e6;
     --border-light: #e9ecef;
@@ -86,7 +87,7 @@ html {
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     font-size: 16px;
     line-height: 1.6;
     color: var(--text-primary);
@@ -105,6 +106,7 @@ h6 {
     line-height: 1.3;
     margin-bottom: var(--spacing-md);
     color: var(--text-primary);
+    font-family: 'Playfair Display', serif;
 }
 
 p {
@@ -188,6 +190,7 @@ ol {
     color: var(--text-primary);
     text-decoration: none;
     transition: var(--transition-fast);
+    font-family: 'Playfair Display', serif;
 }
 
 .logo:hover {
@@ -412,6 +415,7 @@ ol {
     font-size: 1.2rem;
     margin-bottom: var(--spacing-lg);
     position: relative;
+    font-family: 'Playfair Display', serif;
 }
 
 .footer-section h3::after {
@@ -531,7 +535,7 @@ ol {
 .modal input:focus {
     border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(201, 97, 18, 0.1);
 }
 
 .modal button[type="submit"] {
@@ -973,3 +977,5 @@ button:disabled {
         transform: translateY(-5px);
     }
 }
+
+
