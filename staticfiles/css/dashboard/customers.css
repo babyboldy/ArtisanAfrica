@@ -1,0 +1,351 @@
+/* customers.css - Styles spécifiques aux clients */
+
+/* Table des clients */
+.customers-table-wrapper {
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto; /* Permet le défilement horizontal sur petits écrans */
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.customers-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Assure une largeur minimale pour éviter une compression excessive */
+}
+
+.customers-table th {
+    background-color: var(--gray-50);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+    color: var(--gray-900);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--gray-200);
+    white-space: nowrap; /* Empêche le retour à la ligne dans les en-têtes */
+}
+
+.customers-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.customers-table tbody tr:hover {
+    background-color: var(--gray-50);
+    transition: background-color 0.2s ease;
+}
+
+/* Informations client */
+.customer-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.customer-info img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gray-200);
+    flex-shrink: 0; /* Empêche l'image de rétrécir */
+}
+
+
+.customer-id {
+    color: var(--gray-500);
+    font-size: 0.85rem;
+}
+
+/* Contact info */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.contact-info span {
+    word-break: break-word; /* Pour les emails longs */
+}
+
+/* Commandes et dépenses */
+.orders-info,
+.spending-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.orders-info strong,
+.spending-info strong {
+    color: var(--text-primary);
+}
+
+/* Dernière commande */
+.last-order {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+}
+
+/* Statut badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: rgb(16, 185, 129);
+}
+
+.status-badge.blocked {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: rgb(239, 68, 68);
+}
+
+/* Boutons d'action */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    flex-wrap: nowrap; /* Empêche le retour à la ligne des boutons */
+}
+
+.action-btn {
+    background-color: var(--gray-100);
+    border: none;
+    width: 36px; /* Légèrement plus grand pour plus de facilité sur mobile */
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0; /* Empêche les boutons de rétrécir */
+}
+
+.action-btn:hover {
+    background-color: var(--gray-200);
+}
+
+.action-btn i {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+}
+
+/* Modal amélioré */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    max-height: 85vh; /* Limite la hauteur pour garantir qu'il reste de l'espace pour défilement */
+    overflow: hidden; /* Cache tout contenu qui déborde */
+}
+
+.close-modal {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    color: var(--gray-500);
+    cursor: pointer;
+    z-index: 10;
+}
+
+.close-modal:hover {
+    color: var(--gray-900);
+}
+
+/* Détails clients dans le modal */
+.modal-content h2 {
+    background-color: var(--primary-color, #3b82f6);
+    color: white;
+    margin: 0;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.customer-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+    padding: 1.5rem;
+    overflow-y: auto; /* Permet le défilement vertical dans cette section */
+    max-height: calc(85vh - 4rem); /* Hauteur max moins l'espace pour le titre */
+}
+
+.customer-details img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--gray-200);
+    margin: 0 auto;
+    box-shadow: var(--shadow-md);
+}
+
+.customer-details h3 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.customer-details p {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    margin: 0.5rem 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--gray-100);
+    padding-bottom: 0.5rem;
+}
+
+.customer-details p:last-child {
+    border-bottom: none;
+}
+
+.customer-details strong {
+    color: var(--gray-800);
+}
+
+#customerStatus.status-badge {
+    margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .toolbar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .toolbar-left, .toolbar-right {
+        width: 100%;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        width: 40px; /* Encore plus grands sur mobile */
+        height: 40px;
+    }
+    
+    .action-btn i {
+        font-size: 1.1rem; /* Plus grand pour meilleure visibilité */
+    }
+    
+    .customer-info {
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 1992px) and (max-width: 640px) {
+    /* Adaptation spécifique pour téléphones */
+    .customers-table {
+        /* On garde juste les colonnes essentielles */
+        min-width: 100%;
+    }
+    
+    .customers-table th:nth-child(2),
+    .customers-table td:nth-child(2),
+    .customers-table th:nth-child(3),
+    .customers-table td:nth-child(3),
+    .customers-table th:nth-child(4),
+    .customers-table td:nth-child(4),
+    .customers-table th:nth-child(5),
+    .customers-table td:nth-child(5) {
+        display: none; /* Cache les colonnes non essentielles */
+    }
+    
+    /* On garde seulement Client, Statut et Actions */
+    .customers-table th:nth-child(1),
+    .customers-table td:nth-child(1),
+    .customers-table th:nth-child(6),
+    .customers-table td:nth-child(6),
+    .customers-table th:nth-child(7),
+    .customers-table td:nth-child(7) {
+        display: table-cell;
+    }
+    
+    .customer-info {
+        gap: 0.5rem;
+    }
+    
+    /* Centre les boutons d'action */
+    .table-actions {
+        justify-content: center;
+    }
+    
+    /* Modal ajusté */
+    .modal-content {
+        height: 90vh;
+        max-height: 90vh;
+        width: 95%;
+        max-width: 100%;
+        border-radius: var(--radius-md);
+    }
+    
+    .customer-details {
+        padding: 1rem;
+        max-height: calc(90vh - 4rem);
+    }
+    
+    .customer-details p {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 0.25rem;
+    }
+    
+    #customerStatus.status-badge {
+        margin-left: 0;
+        margin-top: 0.25rem;
+    }
+}

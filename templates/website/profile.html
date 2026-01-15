@@ -1,7 +1,7 @@
 <!-- profile.html -->
 {% extends 'base/website/base.html' %}
 {% load static %}
-{% block title %}E-Shop - Produits{% endblock %}
+{% block title %}N'Sapka - Produits{% endblock %}
 {% block content %}
 
 
@@ -57,6 +57,12 @@
                 <a href="#orders" class="nav-item" data-section="orders">
                     <i class="fas fa-shopping-bag"></i> Mes commandes
                 </a>
+
+                <!-- Nouveau lien pour les articles -->
+                <a href="#blog-posts" class="nav-item" data-section="blog-posts">
+                    <i class="fas fa-newspaper"></i> Mes articles
+                </a>
+
                 <a href="#password" class="nav-item" data-section="password">
                     <i class="fas fa-lock"></i> Changer mon mot de passe
                 </a>
@@ -195,58 +201,645 @@
                 </div>
             </section>
 
-            <!-- Commandes -->
-            <section id="orders" class="profile-section">
-                <div class="section-header">
-                    <h2>Mes commandes</h2>
-                    <p>Consultez l'historique de vos commandes</p>
-                </div>
 
-                {% if orders %}
-                    <div class="orders-list">
-                        {% for order in orders %}
-                        <div class="order-card">
-                            <div class="order-header">
-                                <div class="order-info">
-                                    <h3>Commande #{{ order.order_number }}</h3>
-                                    <span class="order-date">{{ order.created_at|date:"d M Y" }}</span>
-                                </div>
-                                <div class="order-status {{ order.status|lower }}">
-                                    {{ order.get_status_display }}
-                                </div>
-                            </div>
-                            <div class="order-summary">
-                                <div class="order-items">
-                                    <span>{{ order.items.count }} article(s)</span>
-                                </div>
-                                <div class="order-total">
-                                    Total: {{ order.total_amount }} F CFA
-                                </div>
-                            </div>
-                            <div class="order-actions">
-                                <a href="{% url 'client_order_detail' order.id %}" class="btn-outline">
-                                    <i class="fas fa-eye"></i> Voir les détails
-                                </a>
-                                {% if order.status == 'delivered' %}
-                                <a href="{% url 'client_order_invoice' order.id %}" class="btn-outline" target="_blank">
-                                    <i class="fas fa-file-invoice"></i> Facture
-                                </a>
+
+            
+
+<!-- Modal pour les détails de commande -->
+<div class="modal" id="orderDetailModal" {% if order_detail %}style="display: block;"{% endif %}>
+    <div class="modal-content order-detail-modal">
+        <span class="close">&times;</span>
+        <h2>Détails de la commande #<span id="order-number">{% if order_detail %}{{ order_detail.order_number }}{% endif %}</span></h2>
+        
+        <div class="order-detail-header">
+            <div class="order-status">
+                <span id="order-status" class="status-badge {% if order_detail %}{{ order_detail.status }}{% endif %}">
+                    {% if order_detail %}{{ order_detail.get_status_display }}{% endif %}
+                </span>
+            </div>
+            <div class="order-date">
+                <i class="far fa-calendar-alt"></i> <span id="order-date">
+                    {% if order_detail %}{{ order_detail.created_at|date:"d/m/Y à H:i" }}{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="order-sections">
+            <!-- Section des articles -->
+            <div class="order-section">
+                <h3>Articles commandés</h3>
+                <div class="order-items-container" id="order-items">
+                    {% if order_detail %}
+                        {% for item in order_detail.items %}
+                        <div class="order-item">
+                            <div class="item-image">
+                                {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                <img src="/static/images/default-product.jpg" alt="{{ item.product.name }}">
                                 {% endif %}
                             </div>
+                            <div class="item-details">
+                                <div class="item-name">{{ item.product.name }}</div>
+                                <div class="item-price">{{ item.unit_price }} € × {{ item.quantity }}</div>
+                            </div>
+                            <div class="item-quantity">
+                                {{ item.get_total }} €
+                            </div>
                         </div>
+                        {% empty %}
+                        <div class="empty-message">Aucun article trouvé dans cette commande.</div>
                         {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Résumé de la commande -->
+            <div class="order-section">
+                <h3>Résumé</h3>
+                <div class="order-summary-details">
+                    <div class="summary-row">
+                        <span>Sous-total:</span>
+                        <span id="order-subtotal">{% if order_detail %}{{ order_detail.get_subtotal }} €{% endif %}</span>
                     </div>
-                {% else %}
-                    <div class="empty-state">
-                        <i class="fas fa-shopping-bag"></i>
-                        <h3>Aucune commande</h3>
-                        <p>Vous n'avez pas encore passé de commande.</p>
-                        <a href="{% url 'products' %}" class="btn-primary">
-                            <i class="fas fa-shopping-cart"></i> Commencer vos achats
+                    <div class="summary-row">
+                        <span>Frais de livraison:</span>
+                        <span id="order-shipping">{% if order_detail %}{{ order_detail.shipping_cost }} €{% endif %}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>TVA:</span>
+                        <span id="order-tax">{% if order_detail %}{{ order_detail.tax_amount }} €{% endif %}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="order-total">{% if order_detail %}{{ order_detail.total_amount }} €{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informations de livraison -->
+            <div class="order-section">
+                <h3>Adresse de livraison</h3>
+                <div class="address-box" id="order-shipping-address">
+                    {% if order_detail %}
+                    <strong>{{ order_detail.shipping_address.full_name }}</strong><br>
+                    {{ order_detail.shipping_address.address_line1 }}<br>
+                    {% if order_detail.shipping_address.address_line2 %}
+                    {{ order_detail.shipping_address.address_line2 }}<br>
+                    {% endif %}
+                    {{ order_detail.shipping_address.postal_code }} {{ order_detail.shipping_address.city }}<br>
+                    {{ order_detail.shipping_address.get_country_display }}<br>
+                    {{ order_detail.shipping_address.phone }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Informations de paiement -->
+            <div class="order-section">
+                <h3>Paiement</h3>
+                <div class="payment-details">
+                    <div class="payment-method">
+                        <strong>Méthode:</strong> <span id="order-payment-method">
+                            {% if order_detail %}{{ order_detail.get_payment_method_display }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="payment-status">
+                        <strong>Statut:</strong> <span id="order-payment-status">
+                            {% if order_detail %}{{ order_detail.get_payment_status_display }}{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn-outline close-modal">Fermer</button>
+            <a href="{% if order_detail and order_detail.status == 'delivered' %}{% url 'client_order_invoice' order_id=order_detail.id %}{% else %}#{% endif %}" 
+               id="order-invoice-link" 
+               class="btn-primary" 
+               target="_blank"
+               {% if not order_detail or order_detail.status != 'delivered' %}style="display: none;"{% endif %}>
+                <i class="fas fa-file-invoice"></i> Télécharger la facture
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- CSS pour le modal -->
+<style>
+    /* Styles pour le modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+
+    .order-detail-modal {
+        background-color: #fff;
+        margin: 5% auto;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        width: 80%;
+        max-width: 900px;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    .modal .close {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .modal .close:hover {
+        color: #000;
+    }
+
+    .order-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-weight: 500;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+
+    .status-badge.pending {
+        background-color: #FFF3CD;
+        color: #856404;
+    }
+
+    .status-badge.processing {
+        background-color: #D1ECF1;
+        color: #0C5460;
+    }
+
+    .status-badge.shipped {
+        background-color: #D4EDDA;
+        color: #155724;
+    }
+
+    .status-badge.delivered {
+        background-color: #D4EDDA;
+        color: #155724;
+    }
+
+    .status-badge.cancelled {
+        background-color: #F8D7DA;
+        color: #721C24;
+    }
+
+    .order-date {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .order-sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .order-sections {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .order-section {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .order-section h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 18px;
+        color: #333;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    }
+
+    .order-items-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .order-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .item-image img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .item-details {
+        flex-grow: 1;
+        padding: 0 15px;
+    }
+
+    .item-name {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .item-price {
+        font-size: 14px;
+        color: #666;
+    }
+
+    .item-quantity {
+        min-width: 80px;
+        text-align: center;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .summary-row.total {
+        font-weight: 700;
+        font-size: 18px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .address-box {
+        background-color: #fff;
+        border: 1px solid #eee;
+        padding: 15px;
+        border-radius: 4px;
+    }
+
+    .payment-details {
+        background-color: #fff;
+        border: 1px solid #eee;
+        padding: 15px;
+        border-radius: 4px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-outline {
+        padding: 8px 16px;
+        border: 1px solid #ccc;
+        background-color: transparent;
+        color: #333;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+
+    .btn-outline:hover {
+        background-color: #f5f5f5;
+    }
+
+    .btn-primary {
+        padding: 8px 16px;
+        border: none;
+        background-color: #4a6741;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #3a5231;
+    }
+</style>
+
+<!-- Script pour le modal -->
+<script>
+// Correction du script JavaScript pour le bouton "Voir les détails"
+document.addEventListener('DOMContentLoaded', function() {
+    // Récupérer le modal
+    const modal = document.getElementById('orderDetailModal');
+    const closeBtn = modal.querySelector('.close');
+    const closeModalBtn = modal.querySelector('.close-modal');
+    
+    // Fonction pour fermer le modal
+    function closeModal() {
+        modal.style.display = "none";
+    }
+    
+    // Attacher les événements pour fermer le modal
+    closeBtn.onclick = closeModal;
+    closeModalBtn.onclick = closeModal;
+    
+    // Fermer le modal si l'utilisateur clique en dehors
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+    
+    // CORRECTION ICI: Attacher des gestionnaires d'événements à tous les boutons "Voir les détails"
+    // Utiliser le bon sélecteur ".view-details" au lieu de "a[href*='client_order_detail']"
+    document.querySelectorAll('.view-details').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Récupérer l'ID de la commande à partir de l'attribut data-order-id
+            const orderId = this.getAttribute('data-order-id');
+            console.log("Affichage des détails pour la commande ID:", orderId);
+            displayOrderDetails(orderId);
+        });
+    });
+    
+    // Fonction pour afficher les détails dans le modal
+    function displayOrderDetails(orderId) {
+        // Afficher le modal immédiatement avec un message de chargement
+        document.getElementById('order-number').textContent = "Chargement...";
+        modal.style.display = 'block';
+        
+        // Récupérer les données de la commande associée
+        fetch(`/orders/api/order-details/${orderId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors du chargement des détails de la commande');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Données reçues:", data);
+                
+                // Afficher les données dans le modal
+                document.getElementById('order-number').textContent = data.order_number;
+                document.getElementById('order-date').textContent = data.created_at;
+                
+                // Statut
+                const statusElement = document.getElementById('order-status');
+                statusElement.textContent = data.status_display;
+                statusElement.className = 'status-badge ' + data.status;
+                
+                // Montants
+                document.getElementById('order-subtotal').textContent = data.subtotal;
+                document.getElementById('order-shipping').textContent = data.shipping_cost;
+                document.getElementById('order-tax').textContent = data.tax_amount;
+                document.getElementById('order-total').textContent = data.total_amount;
+                
+                // Adresse de livraison
+                document.getElementById('order-shipping-address').innerHTML = data.shipping_address;
+                
+                // Informations de paiement
+                document.getElementById('order-payment-method').textContent = data.payment_method_display;
+                document.getElementById('order-payment-status').textContent = data.payment_status_display;
+                
+                // Lien vers la facture (visible uniquement pour les commandes livrées)
+                const invoiceLink = document.getElementById('order-invoice-link');
+                invoiceLink.href = `/orders/client/${orderId}/invoice/`;
+                invoiceLink.style.display = (data.status === 'delivered') ? 'inline-flex' : 'none';
+                
+                // Articles de la commande
+                const itemsContainer = document.getElementById('order-items');
+                itemsContainer.innerHTML = '';
+                
+                data.items.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'order-item';
+                    
+                    itemElement.innerHTML = `
+                        <div class="item-image">
+                            <img src="${item.image || '/static/images/default-product.jpg'}" alt="${item.product_name}">
+                        </div>
+                        <div class="item-details">
+                            <div class="item-name">${item.product_name}</div>
+                            <div class="item-price">${item.unit_price} × ${item.quantity}</div>
+                        </div>
+                        <div class="item-quantity">
+                            ${item.total_price}
+                        </div>
+                    `;
+                    
+                    itemsContainer.appendChild(itemElement);
+                });
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des détails de la commande:', error);
+                // Afficher un message d'erreur dans le modal
+                document.getElementById('order-number').textContent = "Erreur";
+                document.getElementById('order-items').innerHTML = 
+                    `<div class="error-message">Une erreur s'est produite lors du chargement des détails de la commande.</div>`;
+            });
+    }
+});
+</script>
+
+<!-- Ajoutez ceci dans la section des commandes de votre template -->
+<section id="orders" class="profile-section">
+    <div class="section-header">
+        <h2>Mes commandes</h2>
+        <p>Consultez l'historique de vos commandes</p>
+    </div>
+
+    {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+            <div class="order-card" data-order-id="{{ order.id }}">
+                <div class="order-header">
+                    <div class="order-info">
+                        <h3>Commande #{{ order.order_number }}</h3>
+                        <span class="order-date">{{ order.created_at|date:"d M Y" }}</span>
+                    </div>
+                    <div class="order-status {{ order.status|lower }}">
+                        {{ order.get_status_display }}
+                    </div>
+                </div>
+                <div class="order-summary">
+                    <div class="order-items">
+                        <span>{{ order.items.count }} article(s)</span>
+                    </div>
+                    <div class="order-total">
+                        Total: {{ order.total_amount }} F CFA
+                    </div>
+                </div>
+                <div class="order-actions">
+                    <a href="#" class="btn-outline view-details" data-order-id="{{ order.id }}">
+                        <i class="fas fa-eye"></i> Voir les détails
+                    </a>
+                    {% if order.status == 'delivered' %}
+                    <a href="{% url 'client_order_invoice' order.id %}" class="btn-outline" target="_blank">
+                        <i class="fas fa-file-invoice"></i> Facture
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-bag"></i>
+            <h3>Aucune commande</h3>
+            <p>Vous n'avez pas encore passé de commande.</p>
+            <a href="{% url 'products' %}" class="btn-primary">
+                <i class="fas fa-shopping-cart"></i> Commencer vos achats
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+
+
+
+
+
+
+
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <!-- Ajouter une nouvelle section pour les articles -->
+            <!-- À placer parmi les autres sections de profil -->
+            <section id="blog-posts" class="profile-section">
+                <div class="section-header">
+                    <h2>Mes articles de blog</h2>
+                    <p>Gérez vos articles et proposez du contenu pour notre blog</p>
+                </div>
+            
+                <div class="blog-posts-container">
+                    <!-- Bouton pour créer un nouvel article -->
+                    <div class="blog-actions">
+                        <a href="{% url 'blog:create_post' %}" class="btn-primary">
+                            <i class="fas fa-plus"></i> Créer un nouvel article
                         </a>
                     </div>
-                {% endif %}
+            
+                    {% if user_blog_posts %}
+                        <div class="blog-posts-list">
+                            {% for post in user_blog_posts %}
+                                <div class="blog-post-item">
+                                    <div class="post-image">
+                                        {% if post.featured_image %}
+                                            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                                        {% else %}
+                                            <div class="no-image"><i class="fas fa-image"></i></div>
+                                        {% endif %}
+                                    </div>
+            
+                                    <div class="post-details">
+                                        <h3>{{ post.title }}</h3>
+                                        <p class="post-excerpt">{{ post.excerpt|truncatechars:150 }}</p>
+                                        <div class="post-meta">
+                                            <span class="post-date">
+                                                <i class="far fa-calendar-alt"></i>
+                                                Créé le {{ post.created_at|date:"d M Y" }}
+                                            </span>
+                                            <span class="post-status post-status-{{ post.status }}">
+                                                {% if post.status == 'published' %}
+                                                    <i class="fas fa-check-circle"></i> Publié
+                                                {% elif post.status == 'draft' %}
+                                                    <i class="fas fa-clock"></i> En attente de validation
+                                                {% else %}
+                                                    <i class="fas fa-archive"></i> Archivé
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+            
+                                    <div class="post-actions">
+                                        {% if post.status == 'published' %}
+                                            <a href="{% url 'blog:post_detail' post.slug %}" class="btn-view">
+                                                <i class="fas fa-eye"></i> Voir
+                                            </a>
+                                            <a href="{% url 'blog:edit_post' post.id %}" class="btn-edit">
+                                                <i class="fas fa-edit"></i> Modifier
+                                            </a>
+                                            <a href="{% url 'blog:delete_post' post.id %}" class="btn-delete" onclick="return confirm('Voulez-vous vraiment supprimer cet article ?');">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'blog:post_preview' post.id %}" class="btn-view">
+                                                <i class="fas fa-eye"></i> Prévisualiser
+                                            </a>
+                                            <a href="{% url 'blog:edit_post' post.id %}" class="btn-edit">
+                                                <i class="fas fa-edit"></i> Modifier
+                                            </a>
+                                            <a href="{% url 'blog:delete_post' post.id %}" class="btn-delete" onclick="return confirm('Voulez-vous vraiment supprimer cet article ?');">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-newspaper"></i>
+                            <h3>Aucun article</h3>
+                            <p>Vous n'avez pas encore créé d'articles. Partagez votre expertise et vos connaissances en créant votre premier article !</p>
+                        </div>
+                    {% endif %}
+                </div>
             </section>
+            
+
+
+
+
+            
+
 
             <!-- Changement de mot de passe -->
             <section id="password" class="profile-section">
@@ -387,4 +980,5 @@
 
 
 {% endblock %}
+
 

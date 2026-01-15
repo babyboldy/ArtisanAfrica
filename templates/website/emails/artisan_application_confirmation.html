@@ -1,0 +1,40 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}Confirmation de votre candidature artisan{% endblock %}
+
+{% block email_content %}
+<h2>Confirmation de candidature</h2>
+
+<p>Bonjour {{ application.full_name }},</p>
+
+<p>Nous vous remercions d'avoir soumis votre candidature pour rejoindre notre communauté d'artisans sur {{ site_name }}.</p>
+
+<div style="background-color: #f9f9f9; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+    <h3 style="margin-top: 0;">Récapitulatif de votre candidature</h3>
+    
+    <p><strong>Type d'artisanat :</strong> 
+        {% if application.craft_type %}
+            {{ application.craft_type.name }}
+        {% else %}
+            {{ application.other_craft }} (Autre)
+        {% endif %}
+    </p>
+    <p><strong>Expérience :</strong> {{ application.experience }}</p>
+    <p><strong>Date de soumission :</strong> {{ application.submitted_at|date:"d/m/Y H:i" }}</p>
+</div>
+
+<h3>Prochaines étapes</h3>
+
+<ol style="padding-left: 20px;">
+    <li style="margin-bottom: 10px;">Notre équipe va examiner votre candidature et les photos que vous avez soumises</li>
+    <li style="margin-bottom: 10px;">Nous pourrions vous contacter pour des informations supplémentaires ou pour organiser un entretien</li>
+    <li style="margin-bottom: 10px;">Vous recevrez une réponse définitive dans un délai de 7 jours ouvrables</li>
+</ol>
+
+<p>Si votre candidature est acceptée, nous vous guiderons à travers les étapes pour créer votre profil d'artisan et commencer à présenter vos créations sur notre plateforme.</p>
+
+<p>Si vous avez des questions ou souhaitez fournir des informations supplémentaires, n'hésitez pas à nous contacter à <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.</p>
+
+<p>Cordialement,<br>
+L'équipe {{ site_name }}</p>
+{% endblock %}

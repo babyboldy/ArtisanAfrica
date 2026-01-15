@@ -1,0 +1,415 @@
+{% extends 'base/website/base.html' %}
+{% load static %}
+
+{% block title %}Détails de la commande #{{ order.order_number }} - N'Sapka{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-detail-section {
+        background-color: white;
+        border-radius: var(--radius-md);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-light);
+    }
+
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .order-number {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .order-status {
+        display: inline-block;
+        padding: 0.5rem 1.25rem;
+        border-radius: 999px;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .status-pending {
+        background-color: var(--warning-light);
+        color: var(--warning-color);
+    }
+
+    .status-processing {
+        background-color: var(--info-light);
+        color: var(--info-color);
+    }
+
+    .status-shipped {
+        background-color: var(--neutral-beige);
+        color: var(--primary-color);
+    }
+
+    .status-delivered {
+        background-color: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .status-cancelled {
+        background-color: var(--danger-light);
+        color: var(--danger-color);
+    }
+
+    .order-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .meta-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+    }
+
+    .meta-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        margin-bottom: 1.25rem;
+        color: var(--text-primary);
+        position: relative;
+        padding-bottom: 0.5rem;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+        border-radius: 2px;
+    }
+
+    .address-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .address-box {
+        background-color: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-light);
+    }
+
+    .address-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+
+    .address-line {
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+    }
+
+    .order-items {
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .order-item {
+        display: grid;
+        grid-template-columns: 80px 1fr auto;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-light);
+        transition: background-color 0.3s ease;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-item:hover {
+        background-color: var(--bg-light);
+    }
+
+    .item-image {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius-sm);
+        object-fit: cover;
+        border: 1px solid var(--border-light);
+    }
+
+    .item-details h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .item-details p {
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+        font-size: 0.95rem;
+    }
+
+    .item-price {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        text-align: right;
+    }
+
+    .order-totals {
+        background-color: var(--bg-light);
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 2rem;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .total-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+        padding-top: 1rem;
+    }
+
+    .total-label {
+        color: var(--text-secondary);
+    }
+
+    .shipping-tracking {
+        background-color: var(--neutral-beige);
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 2rem;
+    }
+
+    .tracking-number {
+        font-family: monospace;
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        background-color: white;
+        border-radius: var(--radius-sm);
+        display: inline-block;
+        margin-top: 0.5rem;
+        border: 1px dashed var(--primary-color);
+    }
+
+    .actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        color: var(--primary-color);
+        border: 1px solid var(--primary-color);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--primary-light);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .order-meta {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .address-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .order-item {
+            grid-template-columns: 60px 1fr;
+            gap: 1rem;
+        }
+        
+        .item-price {
+            grid-column: 2;
+            text-align: left;
+            margin-top: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="breadcrumb">
+        <a href="{% url 'home' %}">Accueil</a> &gt; 
+        <a href="{% url 'client_profile' %}">Mon compte</a> &gt; 
+        <a href="{% url 'client_orders' %}">Mes commandes</a> &gt; 
+        <span>Détails de commande</span>
+    </div>
+
+    <div class="order-detail-section">
+        <div class="order-header">
+            <h1 class="order-number">Commande #{{ order.order_number }}</h1>
+            <span class="order-status status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+        </div>
+
+        <div class="order-meta">
+            <div class="meta-item">
+                <span class="meta-label">Date de commande</span>
+                <span class="meta-value">{{ order.created_at|date:"d/m/Y à H:i" }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Méthode de paiement</span>
+                <span class="meta-value">{{ order.payment_method }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Statut du paiement</span>
+                <span class="meta-value">{{ order.get_payment_status_display }}</span>
+            </div>
+        </div>
+
+        <h2 class="section-title">Adresses</h2>
+        <div class="address-grid">
+            <div class="address-box">
+                <h3 class="address-title">Adresse de livraison</h3>
+                <p class="address-line">{{ order.shipping_first_name }} {{ order.shipping_last_name }}</p>
+                <p class="address-line">{{ order.shipping_address }}</p>
+                <p class="address-line">{{ order.shipping_city }}, {{ order.shipping_state }}</p>
+                <p class="address-line">{{ order.shipping_country }}</p>
+                <p class="address-line">{{ order.shipping_phone }}</p>
+            </div>
+            <div class="address-box">
+                <h3 class="address-title">Adresse de facturation</h3>
+                <p class="address-line">{{ order.billing_first_name }} {{ order.billing_last_name }}</p>
+                <p class="address-line">{{ order.billing_address }}</p>
+                <p class="address-line">{{ order.billing_city }}, {{ order.billing_state }}</p>
+                <p class="address-line">{{ order.billing_country }}</p>
+                <p class="address-line">{{ order.billing_phone }}</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Articles commandés</h2>
+        <div class="order-items">
+            {% for item in order.orderitem_set.all %}
+            <div class="order-item">
+                <img src="{{ item.product.get_primary_image.image.url }}" alt="{{ item.product.name }}" class="item-image">
+                <div class="item-details">
+                    <h4>{{ item.product.name }}</h4>
+                    <p>Quantité: {{ item.quantity }}</p>
+                    <p>Prix unitaire: {{ item.price|floatformat:0 }} FCFA</p>
+                </div>
+                <div class="item-price">{{ item.get_total|floatformat:0 }} FCFA</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="section-title">Résumé des coûts</h2>
+        <div class="order-totals">
+            <div class="total-row">
+                <span class="total-label">Sous-total</span>
+                <span class="total-value">{{ order.subtotal|floatformat:0 }} FCFA</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">Frais de livraison</span>
+                <span class="total-value">{{ order.shipping_cost|floatformat:0 }} FCFA</span>
+            </div>
+            {% if order.discount %}
+            <div class="total-row">
+                <span class="total-label">Réduction</span>
+                <span class="total-value">-{{ order.discount|floatformat:0 }} FCFA</span>
+            </div>
+            {% endif %}
+            <div class="total-row">
+                <span class="total-label">Total</span>
+                <span class="total-value">{{ order.total|floatformat:0 }} FCFA</span>
+            </div>
+        </div>
+
+        {% if order.status == 'shipped' or order.status == 'delivered' %}
+        <h2 class="section-title">Informations de livraison</h2>
+        <div class="shipping-tracking">
+            <p>Votre commande a été expédiée le {{ order.shipped_at|date:"d/m/Y" }}.</p>
+            {% if order.tracking_number %}
+            <p>Numéro de suivi: <span class="tracking-number">{{ order.tracking_number }}</span></p>
+            <p>Vous pouvez suivre votre colis sur le site du transporteur.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="actions">
+            <a href="{% url 'client_profile' %}#orders" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Retour à mes commandes
+            </a>
+            {% if order.status == 'pending' or order.status == 'processing' %}
+            <form method="post" action="{% url 'cancel_order' order.id %}" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette commande?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Annuler la commande
+                </button>
+            </form>
+            {% endif %}
+            <a href="#" class="btn btn-primary" onclick="window.print();">
+                <i class="fas fa-print"></i> Imprimer la facture
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

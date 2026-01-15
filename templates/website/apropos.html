@@ -1,17 +1,22 @@
-<!-- about.html -->
-{% extends 'base.html' %}
-
-{% block title %}À propos{% endblock %}
-
+<!-- about.html (version mise à jour pour contenu dynamique) -->
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}N'Sapka- À propos{% endblock %}
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'css/website/apropos.css' %}">
 
 <main class="main-container">
     <!-- Hero Section -->
     <section class="about-hero">
         <div class="container">
-            <h1 class="about-title">Notre mission</h1>
-            <p class="about-subtitle">Valoriser l'artisanat africain authentique et soutenir les artisans locaux</p>
+            {% if about_content %}
+                <h1 class="about-title">{{ about_content.title }}</h1>
+                <p class="about-subtitle">{{ about_content.subtitle }}</p>
+            {% else %}
+                <h1 class="about-title">Notre mission</h1>
+                <p class="about-subtitle">Valoriser l'artisanat africain authentique et soutenir les artisans locaux</p>
+            {% endif %}
         </div>
     </section>
 
@@ -20,13 +25,17 @@
         <div class="container">
             <div class="about-card">
                 <div class="about-content">
-                    <h2>Notre Histoire</h2>
-                    <p>Fondée en 2023, ArtisanAfrica est née d'une passion pour l'artisanat africain et d'une vision de créer un pont entre les artisans talentueux d'Afrique et le marché mondial.</p>
-                    <p>Tout a commencé lors d'un voyage en Côte d'Ivoire, où nous avons découvert la richesse et la diversité des techniques artisanales. Nous avons été frappés par le talent des artisans locaux, mais aussi par les difficultés qu'ils rencontraient pour faire connaître et vendre leurs créations au-delà des marchés locaux.</p>
-                    <p>C'est ainsi qu'est née ArtisanAfrica, une plateforme dédiée à la valorisation et à la commercialisation de l'artisanat africain authentique.</p>
+                    <h2>{% if about_content %}{{ about_content.history_title }}{% else %}Notre Histoire{% endif %}</h2>
+                    {% if about_content %}
+                        {{ about_content.history_content|safe }}
+                    {% else %}
+                        <p>Fondée en 2023, N'Sapka est née d'une passion pour l'artisanat africain et d'une vision de créer un pont entre les artisans talentueux d'Afrique et le marché mondial.</p>
+                        <p>Tout a commencé lors d'un voyage en Côte d'Ivoire, où nous avons découvert la richesse et la diversité des techniques artisanales. Nous avons été frappés par le talent des artisans locaux, mais aussi par les difficultés qu'ils rencontraient pour faire connaître et vendre leurs créations au-delà des marchés locaux.</p>
+                        <p>C'est ainsi qu'est née N'Sapka, une plateforme dédiée à la valorisation et à la commercialisation de l'artisanat africain authentique.</p>
+                    {% endif %}
                 </div>
                 <div class="about-image">
-                    <img src="/api/placeholder/500/300" alt="Fondateurs d'ArtisanAfrica" />
+                    <img src="/static/img/website/img_1.jpg" alt="Fondateurs d'N'Sapka" />
                 </div>
             </div>
         </div>
@@ -37,19 +46,23 @@
         <div class="container">
             <div class="about-card reverse">
                 <div class="about-content">
-                    <h2>Notre Mission</h2>
-                    <p>Chez ArtisanAfrica, notre mission est de:</p>
-                    <ul class="about-list">
-                        <li><i class="fas fa-circle"></i> Promouvoir le patrimoine culturel africain à travers l'artisanat authentique</li>
-                        <li><i class="fas fa-circle"></i> Offrir une vitrine internationale aux artisans africains talentueux</li>
-                        <li><i class="fas fa-circle"></i> Garantir des revenus équitables pour les créateurs</li>
-                        <li><i class="fas fa-circle"></i> Préserver les techniques ancestrales et encourager l'innovation</li>
-                        <li><i class="fas fa-circle"></i> Éduquer notre clientèle sur la richesse des cultures africaines</li>
-                    </ul>
-                    <p>Nous croyons fermement que chaque pièce artisanale raconte une histoire unique et porte en elle l'âme de son créateur et de sa culture.</p>
+                    <h2>{% if about_content %}{{ about_content.mission_title }}{% else %}Notre Mission{% endif %}</h2>
+                    {% if about_content %}
+                        {{ about_content.mission_content|safe }}
+                    {% else %}
+                        <p>Chez N'Sapka, notre mission est de:</p>
+                        <ul class="about-list">
+                            <li><i class="fas fa-circle"></i> Promouvoir le patrimoine culturel africain à travers l'artisanat authentique</li>
+                            <li><i class="fas fa-circle"></i> Offrir une vitrine internationale aux artisans africains talentueux</li>
+                            <li><i class="fas fa-circle"></i> Garantir des revenus équitables pour les créateurs</li>
+                            <li><i class="fas fa-circle"></i> Préserver les techniques ancestrales et encourager l'innovation</li>
+                            <li><i class="fas fa-circle"></i> Éduquer notre clientèle sur la richesse des cultures africaines</li>
+                        </ul>
+                        <p>Nous croyons fermement que chaque pièce artisanale raconte une histoire unique et porte en elle l'âme de son créateur et de sa culture.</p>
+                    {% endif %}
                 </div>
                 <div class="about-image">
-                    <img src="/api/placeholder/500/300" alt="Artisans au travail" />
+                    <img src="/static/img/website/qwerqu-mcbrew-qj2pWULDYnE-unsplash.jpg" alt="Artisans au travail" />
                 </div>
             </div>
         </div>
@@ -60,34 +73,46 @@
         <div class="container">
             <h2 class="text-center">Nos Valeurs</h2>
             <div class="values-container">
-                <div class="value-card">
-                    <div class="value-icon">
-                        <i class="fas fa-handshake"></i>
+                {% if company_values %}
+                    {% for value in company_values %}
+                        <div class="value-card">
+                            <div class="value-icon">
+                                <i class="fas {{ value.icon }}"></i>
+                            </div>
+                            <h3>{{ value.title }}</h3>
+                            <p>{{ value.description }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h3>Commerce Équitable</h3>
+                        <p>Nous garantissons des prix justes pour les artisans et une transparence totale dans nos partenariats.</p>
                     </div>
-                    <h3>Commerce Équitable</h3>
-                    <p>Nous garantissons des prix justes pour les artisans et une transparence totale dans nos partenariats.</p>
-                </div>
-                <div class="value-card">
-                    <div class="value-icon">
-                        <i class="fas fa-leaf"></i>
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3>Durabilité</h3>
+                        <p>Nous privilégions les matériaux écologiques et les pratiques respectueuses de l'environnement.</p>
                     </div>
-                    <h3>Durabilité</h3>
-                    <p>Nous privilégions les matériaux écologiques et les pratiques respectueuses de l'environnement.</p>
-                </div>
-                <div class="value-card">
-                    <div class="value-icon">
-                        <i class="fas fa-certificate"></i>
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <h3>Authenticité</h3>
+                        <p>Chaque produit est certifié authentique, fabriqué à la main selon des techniques traditionnelles.</p>
                     </div>
-                    <h3>Authenticité</h3>
-                    <p>Chaque produit est certifié authentique, fabriqué à la main selon des techniques traditionnelles.</p>
-                </div>
-                <div class="value-card">
-                    <div class="value-icon">
-                        <i class="fas fa-hands-helping"></i>
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-hands-helping"></i>
+                        </div>
+                        <h3>Soutien Communautaire</h3>
+                        <p>Une partie de nos bénéfices est réinvestie dans des programmes de formation pour les artisans locaux.</p>
                     </div>
-                    <h3>Soutien Communautaire</h3>
-                    <p>Une partie de nos bénéfices est réinvestie dans des programmes de formation pour les artisans locaux.</p>
-                </div>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -95,33 +120,50 @@
     <!-- Notre Équipe -->
     <section class="about-section bg-light">
         <div class="container">
-            <h2 class="text-center">Notre Équipe</h2>
-            <p class="text-center team-intro">Passionnés par l'artisanat africain et engagés pour sa promotion, notre équipe multiculturelle travaille main dans la main avec les artisans.</p>
+            <h2 class="text-center">{% if about_content %}{{ about_content.team_title }}{% else %}Notre Équipe{% endif %}</h2>
+            <p class="text-center team-intro">{% if about_content %}{{ about_content.team_intro }}{% else %}Passionnés par l'artisanat africain et engagés pour sa promotion, notre équipe multiculturelle travaille main dans la main avec les artisans.{% endif %}</p>
             <div class="team-container">
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="/api/placeholder/200/200" alt="Fondateur" />
+                {% if team_members %}
+                    {% for member in team_members %}
+                        <div class="team-member">
+                            <div class="member-image">
+                                {% if member.image %}
+                                    <img src="{{ member.image.url }}" alt="{{ member.name }}" />
+                                {% else %}
+                                    <img src="/api/placeholder/200/200" alt="{{ member.name }}" />
+                                {% endif %}
+                            </div>
+                            <h3>{{ member.name }}</h3>
+                            <p class="member-title">{{ member.position }}</p>
+                            <p class="member-bio">{{ member.bio }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="team-member">
+                        <div class="member-image">
+                            <img src="/api/placeholder/200/200" alt="Fondateur" />
+                        </div>
+                        <h3>Amadou Koné</h3>
+                        <p class="member-title">Fondateur & Directeur</p>
+                        <p class="member-bio">Passionné d'art africain depuis son enfance, Amadou a voyagé à travers le continent pour découvrir les trésors artisanaux.</p>
                     </div>
-                    <h3>Amadou Koné</h3>
-                    <p class="member-title">Fondateur & Directeur</p>
-                    <p class="member-bio">Passionné d'art africain depuis son enfance, Amadou a voyagé à travers le continent pour découvrir les trésors artisanaux.</p>
-                </div>
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="/api/placeholder/200/200" alt="Co-fondatrice" />
+                    <div class="team-member">
+                        <div class="member-image">
+                            <img src="/api/placeholder/200/200" alt="Co-fondatrice" />
+                        </div>
+                        <h3>Marie Diallo</h3>
+                        <p class="member-title">Co-fondatrice & Responsable Artisans</p>
+                        <p class="member-bio">Avec une formation en design, Marie travaille directement avec les artisans pour préserver l'authenticité tout en innovant.</p>
                     </div>
-                    <h3>Marie Diallo</h3>
-                    <p class="member-title">Co-fondatrice & Responsable Artisans</p>
-                    <p class="member-bio">Avec une formation en design, Marie travaille directement avec les artisans pour préserver l'authenticité tout en innovant.</p>
-                </div>
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="/api/placeholder/200/200" alt="Responsable Marketing" />
+                    <div class="team-member">
+                        <div class="member-image">
+                            <img src="/api/placeholder/200/200" alt="Responsable Marketing" />
+                        </div>
+                        <h3>Thomas Mensah</h3>
+                        <p class="member-title">Responsable Marketing</p>
+                        <p class="member-bio">Expert en commerce équitable, Thomas s'assure que chaque histoire d'artisan est racontée avec authenticité.</p>
                     </div>
-                    <h3>Thomas Mensah</h3>
-                    <p class="member-title">Responsable Marketing</p>
-                    <p class="member-bio">Expert en commerce équitable, Thomas s'assure que chaque histoire d'artisan est racontée avec authenticité.</p>
-                </div>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -129,28 +171,38 @@
     <!-- Processus de sélection -->
     <section class="about-section">
         <div class="container">
-            <h2 class="text-center">Notre Processus de Sélection</h2>
+            <h2 class="text-center">{% if about_content %}{{ about_content.process_title }}{% else %}Notre Processus de Sélection{% endif %}</h2>
             <div class="process-container">
-                <div class="process-step">
-                    <div class="step-number">1</div>
-                    <h3>Recherche d'Artisans</h3>
-                    <p>Nous parcourons les villages et marchés africains à la recherche d'artisans talentueux.</p>
-                </div>
-                <div class="process-step">
-                    <div class="step-number">2</div>
-                    <h3>Vérification d'Authenticité</h3>
-                    <p>Nous validons l'authenticité des techniques et matériaux utilisés.</p>
-                </div>
-                <div class="process-step">
-                    <div class="step-number">3</div>
-                    <h3>Partenariat Équitable</h3>
-                    <p>Nous établissons des partenariats directs basés sur des principes de commerce équitable.</p>
-                </div>
-                <div class="process-step">
-                    <div class="step-number">4</div>
-                    <h3>Contrôle Qualité</h3>
-                    <p>Chaque pièce est soigneusement inspectée avant d'être proposée sur notre plateforme.</p>
-                </div>
+                {% if process_steps %}
+                    {% for step in process_steps %}
+                        <div class="process-step">
+                            <div class="step-number">{{ forloop.counter }}</div>
+                            <h3>{{ step.title }}</h3>
+                            <p>{{ step.description }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <h3>Recherche d'Artisans</h3>
+                        <p>Nous parcourons les villages et marchés africains à la recherche d'artisans talentueux.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <h3>Vérification d'Authenticité</h3>
+                        <p>Nous validons l'authenticité des techniques et matériaux utilisés.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <h3>Partenariat Équitable</h3>
+                        <p>Nous établissons des partenariats directs basés sur des principes de commerce équitable.</p>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <h3>Contrôle Qualité</h3>
+                        <p>Chaque pièce est soigneusement inspectée avant d'être proposée sur notre plateforme.</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -160,30 +212,51 @@
         <div class="container">
             <h2 class="text-center">Ce que disent nos Artisans</h2>
             <div class="testimonials-container">
-                <div class="testimonial">
-                    <div class="testimonial-content">
-                        <p>"Grâce à ArtisanAfrica, mes créations sont maintenant appréciées par des clients du monde entier. Cette plateforme a changé ma vie et celle de ma famille."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="/api/placeholder/60/60" alt="Ibrahim" />
-                        <div>
-                            <h4>Ibrahim Touré</h4>
-                            <p>Sculpteur sur bois, Mali</p>
+                {% if testimonials %}
+                    {% for testimonial in testimonials %}
+                        <div class="testimonial">
+                            <div class="testimonial-content">
+                                <p>"{{ testimonial.content }}"</p>
+                            </div>
+                            <div class="testimonial-author">
+                                {% if testimonial.image %}
+                                    <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}" />
+                                {% else %}
+                                    <img src="/api/placeholder/60/60" alt="{{ testimonial.name }}" />
+                                {% endif %}
+                                <div>
+                                    <h4>{{ testimonial.name }}</h4>
+                                    <p>{{ testimonial.title }}{% if testimonial.location %}, {{ testimonial.location }}{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"Grâce à N'Sapka, mes créations sont maintenant appréciées par des clients du monde entier. Cette plateforme a changé ma vie et celle de ma famille."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/api/placeholder/60/60" alt="Ibrahim" />
+                            <div>
+                                <h4>Ibrahim Touré</h4>
+                                <p>Sculpteur sur bois, Mali</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="testimonial">
-                    <div class="testimonial-content">
-                        <p>"En tant que femme tisserande, j'ai pu développer mon atelier et former d'autres femmes de mon village. ArtisanAfrica nous donne une visibilité que nous n'aurions jamais eue."</p>
-                    </div>
-                    <div class="testimonial-author">
-                        <img src="/api/placeholder/60/60" alt="Fatou" />
-                        <div>
-                            <h4>Fatou Ndour</h4>
-                            <p>Tisserande, Sénégal</p>
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"En tant que femme tisserande, j'ai pu développer mon atelier et former d'autres femmes de mon village. N'Sapka nous donne une visibilité que nous n'aurions jamais eue."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/api/placeholder/60/60" alt="Fatou" />
+                            <div>
+                                <h4>Fatou Ndour</h4>
+                                <p>Tisserande, Sénégal</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -191,8 +264,8 @@
     <!-- Rejoignez-nous -->
     <section class="cta-section">
         <div class="container">
-            <h2>Rejoignez l'Aventure ArtisanAfrica</h2>
-            <p>Que vous soyez un amateur d'art africain, un défenseur du commerce équitable ou un artisan souhaitant élargir vos horizons, nous vous invitons à rejoindre notre communauté.</p>
+            <h2>{% if about_content %}{{ about_content.cta_title }}{% else %}Rejoignez l'Aventure N'Sapka{% endif %}</h2>
+            <p>{% if about_content %}{{ about_content.cta_content }}{% else %}Que vous soyez un amateur d'art africain, un défenseur du commerce équitable ou un artisan souhaitant élargir vos horizons, nous vous invitons à rejoindre notre communauté.{% endif %}</p>
             <div class="cta-buttons">
                 <a href="{% url 'contact' %}" class="btn btn-primary">Nous Contacter</a>
                 <a href="{% url 'products' %}" class="btn btn-secondary">Découvrir nos Produits</a>
@@ -200,4 +273,18 @@
         </div>
     </section>
 </main>
+<script src="{% static 'js/website/apropos.js' %}"></script>
+
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+

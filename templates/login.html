@@ -10,8 +10,8 @@
     <div class="login-container">
         <div class="login-card">
             <div class="login-logo">
-                <i class="fas fa-shopping-cart"></i>
-                <h1>E-Shop Admin</h1>
+                <img src="img/website/nsapka_logo.png" alt="Logo N'Sapka"class="logo-img">
+                <h1>N'Sapka</h1>
             </div>
 
             <div class="welcome-message">
@@ -52,7 +52,7 @@
                         <input type="checkbox" name="remember">
                         <span>Se souvenir de moi</span>
                     </label>
-                    <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+                    <a href="{% url 'forgot_password' %}">Mot de passe oublié ?</a>
                 </div>
 
                 <button type="submit" class="login-button">

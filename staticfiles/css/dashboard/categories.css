@@ -1,0 +1,644 @@
+/* categories.css - Styles spécifiques aux catégories avec améliorations */
+
+/* Grille des catégories */
+.categories-grid {
+    padding: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Carte de catégorie */
+.category-card {
+    background-color: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid var(--gray-200);
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(107, 33, 168, 0.1);
+    border-color: var(--primary-light);
+}
+
+.category-header {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: linear-gradient(135deg, var(--primary-light) 0%, rgba(255, 255, 255, 0.8) 100%);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    transform: rotate(45deg);
+}
+
+.category-card:hover .category-header::before {
+    opacity: 1;
+}
+
+.category-icon {
+    width: 56px;
+    height: 56px;
+    background-color: white;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary);
+    box-shadow: 0 4px 8px rgba(107, 33, 168, 0.15);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
+}
+
+.category-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(107, 33, 168, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 6px 12px rgba(107, 33, 168, 0.2);
+}
+
+.category-card:hover .category-icon::after {
+    opacity: 1;
+}
+
+.category-actions {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.3s ease;
+    z-index: 3;
+}
+
+.category-card:hover .category-actions {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:hover {
+    background-color: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(107, 33, 168, 0.2);
+}
+
+.action-btn.edit-category:hover {
+    background-color: var(--primary);
+}
+
+.action-btn.delete-category:hover {
+    background-color: var(--danger);
+}
+
+.category-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.category-content h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.category-content h3::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 1.5px;
+    transition: width 0.3s ease;
+}
+
+.category-card:hover .category-content h3::after {
+    width: 80px;
+}
+
+.category-content p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3; /* ✅ Version standard recommandée */
+
+
+    
+}
+
+.category-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: auto;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.05);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Style amélioré pour le sélecteur de couleur */
+.color-field {
+    width: 100%;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.color-field:hover {
+    border-color: var(--primary-light);
+    box-shadow: 0 3px 8px rgba(107, 33, 168, 0.15);
+    transform: translateY(-2px);
+}
+
+.color-field::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 100%);
+    pointer-events: none;
+}
+
+input[type="color"] {
+    -webkit-appearance: none; /* Pour Safari/anciens Chrome */
+    appearance: none;          /* ✅ Version standardisée */
+    width: 100%;
+    height: 50px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: none;
+}
+
+/* Icônes */
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.75rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    background-color: var(--gray-50);
+    scrollbar-width: thin;
+    scrollbar-color: var(--gray-300) var(--gray-100);
+}
+
+.icon-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.icon-grid::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 3px;
+}
+
+.icon-grid::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: 3px;
+}
+
+.icon-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-light);
+}
+
+.icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.icon-item:hover {
+    background-color: var(--primary-light);
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 4px 8px rgba(107, 33, 168, 0.15);
+    border-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.icon-item.selected {
+    background-color: var(--primary);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(107, 33, 168, 0.25);
+    border-color: var(--primary);
+}
+
+.icon-item i {
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.icon-item:hover i {
+    transform: scale(1.1);
+}
+
+.icon-item.selected i {
+    transform: scale(1.1);
+}
+
+/* Améliorations pour checkbox */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label:hover {
+    background-color: var(--gray-100);
+}
+
+.checkbox-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkbox-label span {
+    padding-left: 35px;
+    position: relative;
+    font-weight: 500;
+}
+
+.checkbox-label span::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--gray-300);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.checkbox-label:hover span::before {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.1);
+}
+
+.checkbox-label input:checked ~ span::before {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.checkbox-label input:checked ~ span::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 4px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    animation: checkmark 0.2s ease-in-out;
+}
+
+/* Améliorations pour inputs de texte */
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.form-input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.1);
+    outline: none;
+}
+
+textarea.form-input {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Aucun résultat de recherche */
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    grid-column: 1 / -1;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.no-results i {
+    font-size: 3rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+}
+
+.no-results h3 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.no-results p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Animation de vérification */
+@keyframes checkmark {
+    0% {
+        transform: rotate(45deg) scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: rotate(45deg) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Animation de pulse */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(107, 33, 168, 0.4);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(107, 33, 168, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(107, 33, 168, 0);
+    }
+}
+
+.pulse {
+    animation: pulse 0.5s ease;
+}
+
+/* Highlight pour termes de recherche */
+.highlight {
+    background-color: rgba(107, 33, 168, 0.2);
+    color: var(--primary-dark);
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+/* État actif pour les filtres */
+.filter-active {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+/* Styles pour la prévisualisation d'image */
+.current-image {
+    margin: 1rem 0;
+}
+
+.current-image .preview-item {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.current-image .preview-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.current-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.current-image .remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(239, 68, 68, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.current-image .preview-item:hover .remove-image {
+    opacity: 1;
+}
+
+.current-image .remove-image:hover {
+    background-color: var(--danger);
+    transform: rotate(90deg);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    
+    .category-card {
+        height: 380px;
+    }
+    
+    .category-image {
+        height: 160px;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    }
+    
+    .icon-item {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        padding: 15px;
+    }
+    
+    .category-card {
+        height: 350px;
+    }
+    
+    .category-content {
+        padding: 1.25rem;
+    }
+    
+    .category-image {
+        height: 140px;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .icon-item {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+    
+    .category-card {
+        height: auto;
+        min-height: 320px;
+    }
+    
+    .category-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
+    
+    .category-content {
+        padding: 1rem;
+    }
+    
+    .category-image {
+        height: 120px;
+    }
+    
+    .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .icon-item {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .form-input, .checkbox-label {
+        font-size: 0.9rem;
+    }
+}

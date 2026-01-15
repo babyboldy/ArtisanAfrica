@@ -1,0 +1,87 @@
+{% extends "emails/base_email.html" %}
+
+{% block email_title %}Nouvelle candidature artisan{% endblock %}
+
+{% block email_content %}
+<h2>Nouvelle candidature artisan</h2>
+
+<p>Bonjour,</p>
+
+<p>Une nouvelle candidature pour devenir artisan a été soumise sur votre plateforme.</p>
+
+<div style="background-color: #f9f9f9; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0;">
+    <h3 style="margin-top: 0;">Informations sur le candidat</h3>
+    
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold; width: 30%;">Nom complet :</td>
+            <td style="padding: 8px 0;">{{ application.full_name }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Email :</td>
+            <td style="padding: 8px 0;">{{ application.email }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Téléphone :</td>
+            <td style="padding: 8px 0;">{{ application.phone }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Pays :</td>
+            <td style="padding: 8px 0;">{{ application.country }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Type d'artisanat :</td>
+            <td style="padding: 8px 0;">
+                {% if application.craft_type %}
+                    {{ application.craft_type.name }}
+                {% else %}
+                    {{ application.other_craft }} (Autre)
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Expérience :</td>
+            <td style="padding: 8px 0;">{{ application.experience }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Portfolio :</td>
+            <td style="padding: 8px 0;">
+                {% if application.portfolio_url %}
+                    <a href="{{ application.portfolio_url }}" target="_blank">{{ application.portfolio_url }}</a>
+                {% else %}
+                    Non fourni
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-weight: bold;">Date de soumission :</td>
+            <td style="padding: 8px 0;">{{ application.submitted_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+    </table>
+</div>
+
+<h3>Description du candidat</h3>
+<div style="background-color: #f9f9f9; padding: 15px; margin: 10px 0;">
+    <p>{{ application.description }}</p>
+</div>
+
+<p>Le candidat a également soumis {{ application.photos.count }} photo(s) que vous pouvez consulter dans l'interface d'administration.</p>
+
+<p>Veuillez examiner cette candidature et prendre une décision dès que possible.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ admin_url }}" 
+       style="background-color: #007bff; 
+              color: white; 
+              padding: 12px 20px; 
+              text-decoration: none; 
+              border-radius: 4px; 
+              font-weight: bold;
+              display: inline-block;">
+        Examiner cette candidature
+    </a>
+</div>
+
+<p>Cordialement,<br>
+L'équipe de votre plateforme</p>
+{% endblock %}

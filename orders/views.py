@@ -185,7 +185,7 @@ def admin_order_detail(request, order_id):
 @login_required
 def client_order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, customer=request.user)
-    return render(request, 'orders/client_order_detail.html', {'order': order})
+    return render(request, 'website/client_order_detail.html', {'order': order})
 
 
 @login_required

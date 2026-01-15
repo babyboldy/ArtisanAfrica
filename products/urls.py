@@ -1,5 +1,12 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework.routers import DefaultRouter
+from .viewsets import CategoryViewSet, ProductViewSet, ProductMediaViewSet
+
+router = DefaultRouter()
+router.register(r'categories', CategoryViewSet, basename='categories')
+router.register(r'products', ProductViewSet, basename='products')
+router.register(r'media', ProductMediaViewSet, basename='product-media')
 
 urlpatterns = [
     # Gestion des catégories
@@ -19,6 +26,7 @@ urlpatterns = [
     path('products/', views.products_page, name='products'),
     path('products/<int:product_id>/', views.products_detail, name='product_detail'),
     path('products/<int:product_id>/check-stock/', views.check_stock, name='check_stock'),
+    path('', include(router.urls)),
 
 ]
 

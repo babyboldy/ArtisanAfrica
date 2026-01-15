@@ -1,6 +1,14 @@
 # urls.py
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework.routers import DefaultRouter
+from .viewsets import OrderViewSet, OrderItemViewSet, OrderNoteViewSet
+
+router = DefaultRouter()
+router.register(r'orders', OrderViewSet, basename='orders')
+router.register(r'items', OrderItemViewSet, basename='order-items')
+router.register(r'notes', OrderNoteViewSet, basename='order-notes')
+
 
 urlpatterns = [
     # Vue principale du tableau de bord des commandes
@@ -14,10 +22,12 @@ urlpatterns = [
     path('<int:order_id>/details/', views.get_order_details, name='get_order_details'),
     path('change-status/', views.change_order_status, name='change_order_status'),
     path('change-payment-status/', views.change_payment_status, name='change_payment_status'),
-    path('orders/<int:order_id>/details/', views.order_detail_json, name='order_detail_json'),
+    # path('orders/<int:order_id>/details/', views.order_detail_json, name='order_detail_json'),
     path('<int:order_id>/update-tracking/', views.update_tracking_number, name='update_tracking_number'),
     path('<int:order_id>/add-note/', views.add_order_note, name='add_order_note'),
     path('batch-update/', views.batch_update_orders, name='batch_update_orders'),
+    path('client/<int:order_id>/detail/', views.client_order_detail, name='client_order_detail'),
+
     
     # Exports et factures
     path('export/xls/', views.export_orders_xls, name='export_orders_xls'),
@@ -29,4 +39,7 @@ urlpatterns = [
     path('payment/', views.payment_page, name='payment'),
     path('process-payment/', views.process_payment, name='process_payment'),
     path('confirmation/<str:order_number>/', views.payment_confirmation, name='payment_confirmation'),
+    
+    #API
+    path('', include(router.urls)),
 ]

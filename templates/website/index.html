@@ -1,6 +1,345 @@
 {% extends 'base/website/base.html' %}
 {% load static %}
-{% block title %}E-Shop - Accueil{% endblock %}
+{% block title %}N'Sapka - Artisanat Africain Authentique{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/home.css' %}">
+
+<main class="home-page">
+    <!-- Hero Section avec carousel -->
+    <section class="hero">
+        <div class="hero-carousel" id="hero-carousel">
+
+            <div class="carousel-slide active" style="background-image: url('{% static 'img/website/sunny-wang-brIOGFWOjok-unsplash.jpg' %}');">
+                <div class="slide-content">
+                    <h1 class="hero-title">Découvrez l'Artisanat Africain Authentique</h1>
+                    <p class="hero-subtitle">Des pièces uniques créées par des artisans locaux, alliant tradition et créativité</p>
+                </div>
+            </div>
+            <div class="carousel-slide" style="background-image: url('{% static 'img/website/alferio-njau-ThwZscvTOOo-unsplash.jpg' %}');">
+                <div class="slide-content">
+                    <h1 class="hero-title">Art et Tradition</h1>
+                    <p class="hero-subtitle">Bijoux, textiles et sculptures qui racontent l'histoire et la richesse culturelle de l'Afrique</p>
+                </div>
+            </div>
+            <div class="carousel-slide" style="background-image: url('{% static 'img/website/omotayo-tajudeen-8JC6efGda9s-unsplash.jpg' %}');">
+                <div class="slide-content">
+                    <h1 class="hero-title">Soutenir les Artisans Locaux</h1>
+                    <p class="hero-subtitle">Chaque achat contribue directement à soutenir les communautés d'artisans africains</p>
+                </div>
+            </div>
+            
+            <!-- Contrôles du carousel -->
+            <button class="carousel-control prev" id="prev-slide"><i class="fas fa-chevron-left"></i></button>
+            <button class="carousel-control next" id="next-slide"><i class="fas fa-chevron-right"></i></button>
+            
+            <!-- Indicateurs du carousel -->
+            <div class="carousel-indicators">
+                <span class="indicator active" data-slide="0"></span>
+                <span class="indicator" data-slide="1"></span>
+                <span class="indicator" data-slide="2"></span>
+            </div>
+        </div>
+        
+        <div class="hero-actions">
+            <a href="{% url 'products' %}" class="cta-button primary">
+                <span>Explorez les produits</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+            <a href="{% url 'artisans:artisans_list' %}" class="cta-button secondary">
+                <span>Découvrir les artisans</span>
+                <i class="fas fa-users"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Catégories -->
+    <section class="categories-section">
+        <div class="section-container">
+            <header class="section-header">
+                <h2 class="section-title">Nos Catégories</h2>
+                <p class="section-subtitle">Explorez notre collection unique d'art africain</p>
+            </header>
+
+            <div class="categories-grid">
+                {% for category in categories %}
+                <a href="{% url 'products' %}?category={{ category.id }}" class="category-card"
+                    data-category="{{ category.name|lower }}">
+                    <div class="category-icon">
+                        <i class="fas {{ category.icon }}" style="color: {{ category.color }}"></i>
+                    </div>
+                    <div class="category-content">
+                        <h3 class="category-title">{{ category.name }}</h3>
+                        {% if category.description %}
+                        <p class="category-description">{{ category.description|truncatechars:50 }}</p>
+                        {% endif %}
+                        <span class="category-link">Explorer <i class="fas fa-arrow-right"></i></span>
+                    </div>
+                    {% if category.image %}
+                    <div class="category-image" style="background-image: url('{{ category.image.url }}')"></div>
+                    {% endif %}
+                </a>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-boxes"></i>
+                    <p>Aucune catégorie disponible pour le moment</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Produits Vedettes -->
+    <section class="featured-products-section">
+        <div class="section-container">
+            <header class="section-header">
+                <h2 class="section-title">Produits Vedettes</h2>
+                <p class="section-subtitle">Découvrez nos dernières nouveautés</p>
+            </header>
+
+            <div class="products-grid">
+                {% for product in featured_products %}
+                {% if product.stock > 0 %}
+                <article class="product-card" data-category="{{ product.category.name|lower }}">
+                    <a href="{% url 'product_detail' product.id %}" class="product-link">
+                        <div class="product-image">
+                            {% if product.media.exists %}
+                            <img src="{{ product.media.first.file.url }}" alt="{{ product.name }}" loading="lazy">
+                            {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="Image non disponible" loading="lazy">
+                            {% endif %}
+
+                            {% if product.featured %}
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i> Vedette
+                            </div>
+                            {% endif %}
+
+                            <div class="product-overlay">
+                                <span class="view-details">
+                                    <i class="fas fa-eye"></i> Voir détails
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="product-info">
+                            <div class="product-category">
+                                <i class="fas {{ product.category.icon }}" style="color: {{ product.category.color }}"></i>
+                                {{ product.category.name }}
+                            </div>
+
+                            <h3 class="product-title">{{ product.name }}</h3>
+
+                            {% if product.description %}
+                            <p class="product-description">{{ product.description|truncatechars:100 }}</p>
+                            {% endif %}
+
+                            <div class="product-details">
+                                <div class="product-price">
+                                    <span class="current-price">{{ product.price }} F CFA</span>
+                                </div>
+
+                                <div class="product-stock">
+                                    <i class="fas fa-check"></i> En stock
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <button onclick="addToCart(
+                        {{ product.id }}, 
+                        '{{ product.name|escapejs }}', 
+                        {{ product.price }}, 
+                        '{% if product.media.exists %}{{ product.media.first.file.url }}{% else %}{% static 'images/placeholder.jpg' %}{% endif %}',
+                        {{ product.stock }}
+                    )" class="add-to-cart-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Ajouter au panier
+                    </button>
+                </article>
+                {% endif %}
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>Aucun produit vedette disponible pour le moment</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="section-footer">
+                <a href="{% url 'products' %}" class="view-all-btn">
+                    Voir tous les produits
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bannière avantages -->
+    <section class="features-banner">
+        <div class="section-container">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h3>Authenticité garantie</h3>
+                    <p>Chaque pièce est authentifiée et provient directement des artisans</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h3>Livraison rapide</h3>
+                    <p>Expédition sécurisée et suivi de commande en temps réel</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <h3>Commerce équitable</h3>
+                    <p>Soutien direct aux artisans et aux communautés locales</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h3>Retours faciles</h3>
+                    <p>Satisfait ou remboursé sous 30 jours</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="section-container">
+            <div class="newsletter-content">
+                <header class="section-header">
+                    <h2 class="section-title">Restez informé</h2>
+                    <p class="section-subtitle">Inscrivez-vous à notre newsletter pour recevoir nos dernières offres</p>
+                </header>
+
+                <form class="newsletter-form" id="newsletterForm" method="POST"
+                    action="{% url 'newsletter_subscribe' %}">
+                    {% csrf_token %}
+                    <input type="email" name="email" id="newsletterEmail" placeholder="Votre adresse email" required>
+                    <button type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                        S'inscrire
+                    </button>
+                </form>
+                <p class="privacy-note">
+                    <i class="fas fa-shield-alt"></i>
+                    Vos données sont en sécurité avec nous. Désabonnez-vous à tout moment.
+                </p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Notification toast -->
+<div id="notification" class="notification" role="alert">
+    <i class="fas fa-check-circle"></i>
+    <span id="notification-message"></span>
+    <button class="close-notification">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Carousel automatique
+        const carousel = document.getElementById('hero-carousel');
+        if (!carousel) {
+            console.error("Élément carousel non trouvé");
+            return;
+        }
+        
+        const slides = carousel.querySelectorAll('.carousel-slide');
+        if (slides.length === 0) {
+            console.error("Aucune slide trouvée dans le carousel");
+            return;
+        }
+        
+        const indicators = carousel.querySelectorAll('.carousel-indicators .indicator');
+        const prevBtn = document.getElementById('prev-slide');
+        const nextBtn = document.getElementById('next-slide');
+        let currentSlide = 0;
+        
+        // Réinitialiser toutes les slides et définir la première comme active
+        slides.forEach((slide, index) => {
+            slide.classList.remove('active');
+            if (index === 0) {
+                slide.classList.add('active');
+            }
+        });
+        
+        if (indicators.length > 0) {
+            indicators.forEach((indicator, index) => {
+                indicator.classList.remove('active');
+                if (index === 0) {
+                    indicator.classList.add('active');
+                }
+            });
+        }
+        
+        function showSlide(n) {
+            // Cacher toutes les slides
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            // Désactiver tous les indicateurs
+            indicators.forEach(indicator => {
+                indicator.classList.remove('active');
+            });
+            
+            // Activer la slide actuelle
+            slides[n].classList.add('active');
+            if (indicators.length > n) {
+                indicators[n].classList.add('active');
+            }
+            currentSlide = n;
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        // Event listeners pour les contrôles
+        if (prevBtn) prevBtn.addEventListener('click', prevSlide);
+        if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+        
+        // Event listeners pour les indicateurs
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                showSlide(index);
+            });
+        });
+        
+        // Changement automatique des slides
+        setInterval(nextSlide, 5000);
+        
+        console.log("Carousel initialisé avec " + slides.length + " slides");
+    });
+</script>
+{% endblock %}
+
+
+
+
+
+
+{% comment %} {% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}N'Sapka - Accueil{% endblock %}
 {% block content %}
 
 
@@ -184,4 +523,4 @@
     </button>
 </div>
 
-{% endblock %}
+{% endblock %} {% endcomment %}

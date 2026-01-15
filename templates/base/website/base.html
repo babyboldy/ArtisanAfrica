@@ -6,14 +6,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ArtisanAfrica{% endblock %}</title>
+    <title>{% block title %}N'Sapka{% endblock %}</title>
 
     <!-- Styles principaux -->
     <link rel="stylesheet" href="{% static 'css/website/styles.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- {% block extra_css %}{% endblock %} -->
 </head>
 
@@ -21,8 +19,11 @@
 
     <header class="header">
         <nav class="nav-container">
-            <a href="{% url 'home' %}" class="logo">ArtisanAfrica</a>
-    
+            <div class="logo-container">
+                <img src="{% static 'img/website/nsapka_logo.png' %}" alt="Logo N'Sapka" class="logo-img">
+                <a href="{% url 'home' %}" class="logo">N'Sapka</a>
+            </div>
+
             <div class="burger-menu">
                 <div class="burger-line"></div>
                 <div class="burger-line"></div>
@@ -31,24 +32,11 @@
     
             <ul class="nav-links" id="nav-links">
                 <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a></li>
-                <li><a href="{% url 'products' %}"
-                        class="{% if request.path == '/products/' %}active{% endif %}">Boutique</a></li>
-
-                <!-- Ajouter url artisanat -->
-                <li><a href="{% url 'contact' %}"
-                            class="{% if request.path == '/contact/' %}active{% endif %}">Artisans</a></li> 
-                                 
-                            
-                <!-- Ajouter url Blog -->
-                <li><a href="{% url 'contact' %}"
-                    class="{% if request.path == '/contact/' %}active{% endif %}">Blog</a></li>  
-                    
-                <!-- Ajouter url Apropos -->
-                <li><a href="{% url 'contact' %}"
-                    class="{% if request.path == '/contact/' %}active{% endif %}">A propos</a></li> 
-                            
-                <li><a href="{% url 'contact' %}"
-                        class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a></li>
+                <li><a href="{% url 'products' %}" class="{% if request.path == '/products/' %}active{% endif %}">Boutique</a></li>
+                <li><a href="{% url 'artisans:artisans_list' %}" class="{% if request.path == '/artisans/' %}active{% endif %}">Artisans</a></li>
+                <li><a href="{% url 'blog:post_list' %}" class="{% if request.path == '/blog/' %}active{% endif %}">Blog</a></li>
+                <li><a href="{% url 'about' %}" class="{% if request.path == '/about/' %}active{% endif %}">À propos</a></li>
+                <li><a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a></li>
     
                 <!-- Icône du panier -->
                 <li class="cart-icon">
@@ -80,7 +68,6 @@
     <!-- Contenu principal -->
     {% block content %}{% endblock %}
 
-
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-section">
@@ -96,36 +83,37 @@
 
             <div class="footer-section">
                 <h3>Liens rapides</h3>
-                <a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}">Accueil</a>
-                
-                <a href="{% url 'products' %}"
-                    class="{% if request.path == '/products/' %}active{% endif %}">Boutique</a>
-
-                        <!-- Réference  à ajouter -->
-                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Blog</a>
-                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Devenir vendeur</a>
-
-
-
+                <ul class="footer-links">
+                    <li><a href="{% url 'home' %}">Accueil</a></li>
+                    <li><a href="{% url 'products' %}">Boutique</a></li>
+                    <li><a href="{% url 'blog:post_list' %}">Blog</a></li>
+                    <li><a href="#" class="special-link">Devenir vendeur</a></li>
+                </ul>
             </div>
 
             <div class="footer-section">
                 <h3>Information</h3>
-                <p>À propos</p>
-                <a href="{% url 'contact' %}" class="{% if request.path == '/contact/' %}active{% endif %}">Contact</a>
-                <p>Conditions d'utilisation</p>
-                <p>Politique de confidentialité</p>
-                <p>FAQ</p>
+                <ul class="footer-links">
+                    <li><a href="{% url 'about' %}">À propos</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="#">Conditions d'utilisation</a></li>
+                    <li><a href="#">Politique de confidentialité</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
             </div>
 
             <div class="footer-section">
                 <h3>Contact</h3>
-                <p>Carrefour du Village Artisanale</p>
-                <p>Citydia, Grand-Bassam</p>
-                <p>contact@artisanAfrican.com</p>
-                <p>+225 070 864 29 74</p>
-                </div>
+                <address>
+                    <p><i class="fas fa-map-marker-alt"></i> Carrefour du Village Artisanal</p>
+                    <p><i class="fas fa-map-pin"></i> Citydia, Grand-Bassam</p>
+                    <p><i class="fas fa-envelope"></i> contact@N'Sapka.com</p>
+                    <p><i class="fas fa-phone"></i> +225 070 864 29 74</p>
+                </address>
             </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; {% now "Y" %} N'Sapka. Tous droits réservés.</p>
         </div>
     </footer>
 
@@ -134,27 +122,33 @@
     <!-- {% block extra_js %}{% endblock %} -->
 
     <script>
-        function toggleMenu() {
-            document.getElementById("nav-links").classList.toggle("active");
-        }
-
-        function toggleUserMenu() {
-            document.getElementById("user-dropdown").classList.toggle("show");
-        }
-
-        // Ferme le menu si on clique en dehors
-        window.onclick = function (event) {
-            if (!event.target.matches('.user-menu a')) {
-                let dropdowns = document.getElementsByClassName("dropdown-menu");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    let openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Burger menu toggle
+            const burgerMenu = document.querySelector('.burger-menu');
+            const navLinks = document.getElementById('nav-links');
+            
+            burgerMenu.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+                burgerMenu.classList.toggle('active');
+            });
+            
+        // Sélectionner l'élément user-menu et le dropdown
+        const userMenu = document.querySelector('.user-menu > a');
+        const userDropdown = document.getElementById('user-dropdown');
+        
+    if (userMenu && userDropdown) {
+        // Ajouter un événement de clic pour basculer l'affichage du dropdown
+        userMenu.addEventListener('click', function(e) {
+            e.preventDefault(); // Empêcher le comportement par défaut du lien
+            userDropdown.classList.toggle('show');
+        });
+        
+        // Fermer le dropdown quand on clique ailleurs sur la page
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-menu')) {
+                userDropdown.classList.remove('show');
             }
-        };
-
+        });}
     </script>
 
 </body>

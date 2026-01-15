@@ -65,6 +65,14 @@ class User(AbstractUser):
     last_order_date = models.DateTimeField(_('Date de dernière commande'), blank=True, null=True)
     account_status = models.BooleanField(_('Compte actif'), default=True)
     
+    # Confirmation d'email
+    email_confirmation_token = models.CharField(_('Token de confirmation d\'email'), max_length=100, blank=True, null=True)
+    email_confirmed = models.BooleanField(_('Email confirmé'), default=False)
+    
+    # Ajouter ce champ pour la réinitialisation du mot de passe
+    password_reset_token = models.CharField(max_length=255, blank=True, null=True)
+    password_reset_expires = models.DateTimeField(blank=True, null=True)
+    
     # Dates importantes
     date_joined = models.DateTimeField(_('Date d\'inscription'), default=timezone.now)
     last_login = models.DateTimeField(_('Dernière connexion'), blank=True, null=True)

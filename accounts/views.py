@@ -1,4 +1,6 @@
+from datetime import timedelta
 import os
+import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -7,6 +9,12 @@ from accounts.models import User, UserAddress
 from django.http import JsonResponse
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.urls import reverse
+from django.contrib.auth.hashers import make_password
 
 
 def register_page(request):
@@ -40,7 +48,9 @@ def register_page(request):
                 first_name=first_name,
                 last_name=last_name,
                 user_type="CLIENT",
-                phone=phone
+                phone=phone,
+                account_status=True,  # Compte actif mais email non confirmé
+                email_confirmed=False  # L'email doit être confirmé
             )
 
             # Champs optionnels
@@ -55,6 +65,8 @@ def register_page(request):
             if 'profile_picture' in request.FILES:
                 user.profile_picture = request.FILES['profile_picture']
 
+            # Génération du token de confirmation
+            user.email_confirmation_token = uuid.uuid4().hex
             user.save()
 
             # Création de l'adresse si fournie
@@ -75,7 +87,29 @@ def register_page(request):
                     is_default=True
                 )
 
-            messages.success(request, "Inscription réussie. Connectez-vous maintenant.")
+            # Envoi de l'email de confirmation
+            confirmation_link = request.build_absolute_uri(
+                reverse('confirm_email', kwargs={'token': user.email_confirmation_token})
+            )
+            
+            # Utilisation d'un template HTML pour l'email
+            html_message = render_to_string('website/emails/email_confirmation.html', {
+                'user': user,
+                'confirmation_link': confirmation_link
+            })
+            
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject='Confirmez votre adresse email',
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+
+            messages.success(request, "Inscription réussie. Un email de confirmation a été envoyé. Veuillez confirmer votre compte pour vous connecter.")
             return redirect("login")
 
         except Exception as e:
@@ -83,6 +117,25 @@ def register_page(request):
             return redirect("register")
 
     return render(request, "register.html")
+
+
+def confirm_email(request, token):
+    try:
+        user = User.objects.get(email_confirmation_token=token)
+        
+        if not user.email_confirmed:
+            user.email_confirmed = True
+            user.email_confirmation_token = None  # Effacer le token après utilisation
+            user.save()
+            
+            messages.success(request, "Votre adresse email a été confirmée avec succès. Vous pouvez maintenant vous connecter.")
+        else:
+            messages.info(request, "Cette adresse email a déjà été confirmée.")
+            
+        return redirect("login")
+    except User.DoesNotExist:
+        messages.error(request, "Lien de confirmation invalide ou expiré.")
+        return redirect("register")
 
 
 def login_page(request):
@@ -98,6 +151,10 @@ def login_page(request):
         if user is not None:
             if not user.account_status:
                 messages.error(request, "Votre compte a été désactivé. Contactez l'administrateur.")
+                return redirect("login")
+                
+            if not user.email_confirmed:
+                messages.error(request, "Votre adresse email n'a pas encore été confirmée. Veuillez vérifier votre email et cliquer sur le lien de confirmation.")
                 return redirect("login")
 
             login(request, user)
@@ -214,3 +271,93 @@ def customer_detail(request, customer_id):
         return JsonResponse(data)
     except User.DoesNotExist:
         return JsonResponse({'error': 'Client non trouvé'}, status=404)
+    
+    
+from django.utils import timezone
+# Vue pour la demande de réinitialisation de mot de passe
+def forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        
+        if not email:
+            messages.error(request, "Veuillez entrer une adresse e-mail.")
+            return redirect("forgot_password")
+
+        try:
+            user = User.objects.get(email=email)
+            # Génération d'un jeton unique
+            user.password_reset_token = uuid.uuid4().hex
+            # Définir une expiration (par exemple, 1 heure)
+            user.password_reset_expires = timezone.now() + timedelta(hours=1)
+            user.save()
+
+            # Créer un lien de réinitialisation
+            reset_link = request.build_absolute_uri(
+                reverse('reset_password', kwargs={'token': user.password_reset_token})
+            )
+
+            # Rendre un template HTML pour l'e-mail
+            html_message = render_to_string('website/emails/password_reset.html', {
+                'user': user,
+                'reset_link': reset_link
+            })
+            plain_message = strip_tags(html_message)
+
+            # Envoyer l'e-mail
+            send_mail(
+                subject='Réinitialisation de votre mot de passe',
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+
+            messages.success(request, "Un lien de réinitialisation a été envoyé à votre adresse e-mail.")
+            return redirect("login")
+
+        except User.DoesNotExist:
+            messages.error(request, "Aucun utilisateur n'est associé à cette adresse e-mail.")
+            return redirect("forgot_password")
+
+    return render(request, "forgot_password.html")
+
+# Vue pour réinitialiser le mot de passe
+def reset_password(request, token):
+    try:
+        user = User.objects.get(password_reset_token=token)
+
+        # Vérifier si le jeton est expiré
+        if user.password_reset_expires < timezone.now():
+            messages.error(request, "Le lien de réinitialisation a expiré. Veuillez faire une nouvelle demande.")
+            user.password_reset_token = None
+            user.password_reset_expires = None
+            user.save()
+            return redirect("forgot_password")
+
+        if request.method == "POST":
+            password = request.POST.get("password")
+            confirm_password = request.POST.get("confirm_password")
+
+            if not password or not confirm_password:
+                messages.error(request, "Veuillez entrer un mot de passe et le confirmer.")
+                return redirect("reset_password", token=token)
+
+            if password != confirm_password:
+                messages.error(request, "Les mots de passe ne correspondent pas.")
+                return redirect("reset_password", token=token)
+
+            # Mettre à jour le mot de passe
+            user.password = make_password(password)
+            user.password_reset_token = None
+            user.password_reset_expires = None
+            user.save()
+
+            messages.success(request, "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.")
+            return redirect("login")
+
+        return render(request, "reset_password.html", {'token': token})
+
+    except User.DoesNotExist:
+        messages.error(request, "Lien de réinitialisation invalide ou expiré.")
+        return redirect("forgot_password")

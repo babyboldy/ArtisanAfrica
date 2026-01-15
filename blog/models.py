@@ -138,7 +138,7 @@ class Comment(models.Model):
         verbose_name=_('Commentaire parent')
     )
     content = models.TextField(_('Contenu'))
-    is_approved = models.BooleanField(_('Approuvé'), default=False)
+    is_approved = models.BooleanField(_('Approuvé'), default=True)
     created_at = models.DateTimeField(_('Date de création'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Date de modification'), auto_now=True)
 

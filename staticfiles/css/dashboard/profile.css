@@ -1,0 +1,333 @@
+/* profile.css - Styles pour la page profil */
+
+/* Container principal */
+.profile-container {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+}
+
+/* Menu de navigation latéral */
+.profile-menu {
+    flex: 0 0 250px;
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    color: var(--text-secondary);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background-color: var(--gray-50);
+    color: var(--primary);
+}
+
+.menu-item.active {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
+}
+
+.menu-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Sections de profil */
+.profile-sections {
+    flex: 1;
+    background-color: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    width: 100%;
+}
+
+.profile-section {
+    display: none;
+    padding: 2rem;
+}
+
+.profile-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+/* Avatar */
+.profile-avatar {
+    display: flex;
+    align-items: start;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.avatar-preview {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.avatar-preview:hover .avatar-overlay {
+    opacity: 1;
+}
+
+.avatar-overlay i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.avatar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.avatar-info p {
+    color: var(--gray-500);
+    font-size: 0.9rem;
+}
+
+/* Formulaires */
+.profile-form,
+.security-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.form-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Input mot de passe */
+.password-input {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+}
+
+/* Exigences de mot de passe */
+.password-requirements {
+    background-color: var(--gray-50);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin: 1rem 0;
+}
+
+.password-requirements h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-500);
+    margin-bottom: 0.25rem;
+}
+
+.requirement i {
+    color: var(--gray-300);
+}
+
+.requirement.valid i {
+    color: var(--success);
+}
+
+/* Adresses */
+.addresses-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.address-card {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    transition: var(--transition);
+}
+
+.address-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.address-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.address-content {
+    margin-bottom: 1.5rem;
+}
+
+.address-content p {
+    margin-bottom: 0.25rem;
+    color: var(--gray-500);
+}
+
+.address-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.empty-state {
+    grid-column: span 2;
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--gray-50);
+    border-radius: var(--radius-md);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--gray-500);
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .profile-container {
+        flex-direction: column;
+    }
+    
+    .profile-menu {
+        flex: none;
+        display: flex;
+        overflow-x: auto;
+    }
+    
+    .menu-item {
+        flex: 1;
+        white-space: nowrap;
+        border-bottom: 3px solid transparent;
+        border-left: none;
+    }
+    
+    .menu-item.active {
+        border-bottom: 3px solid var(--primary);
+        border-left: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .addresses-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .empty-state {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .profile-avatar {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .profile-menu {
+        flex-wrap: wrap;
+    }
+    
+    .menu-item {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+}

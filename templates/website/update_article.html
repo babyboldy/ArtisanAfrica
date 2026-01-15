@@ -1,0 +1,162 @@
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}Modifier l'article - N'Sapka{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/profile.css' %}">
+<link rel="stylesheet" href="{% static 'css/website/blog.css' %}">
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>Modifier l'article</h1>
+        <p>Mettez à jour votre article avant validation</p>
+    </div>
+    
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+            <button type="button" class="close-alert">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="blog-form-container">
+        <form method="post" action="" enctype="multipart/form-data" class="blog-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3>Informations de base</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <span class="form-error">{{ form.title.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <span class="form-error">{{ form.category.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.tags.id_for_label }}">{{ form.tags.label }}</label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                        <span class="form-error">{{ form.tags.errors.0 }}</span>
+                        {% endif %}
+                        <small class="form-help">{{ form.tags.help_text }}</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Contenu de l'article</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.excerpt.id_for_label }}">{{ form.excerpt.label }}</label>
+                    {{ form.excerpt }}
+                    {% if form.excerpt.errors %}
+                    <span class="form-error">{{ form.excerpt.errors.0 }}</span>
+                    {% endif %}
+                    <small class="form-help">{{ form.excerpt.help_text }}</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <span class="form-error">{{ form.content.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Image de l'article</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.featured_image.id_for_label }}">{{ form.featured_image.label }}</label>
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="imagePreview">
+                            {% if post.featured_image %}
+                                <img src="{{ post.featured_image.url }}" alt="Image de l'article" id="previewImage">
+                            {% else %}
+                                <img src="{% static 'img/website/placeholder-image.jpg' %}" alt="Aperçu de l'image" id="previewImage">
+                            {% endif %}
+                        </div>
+                        <div class="image-upload">
+                            {{ form.featured_image }}
+                            <label for="{{ form.featured_image.id_for_label }}" class="upload-label">
+                                <i class="fas fa-upload"></i> Changer l'image
+                            </label>
+                        </div>
+                    </div>
+                    {% if form.featured_image.errors %}
+                    <span class="form-error">{{ form.featured_image.errors.0 }}</span>
+                    {% endif %}
+                    <small class="form-help">{{ form.featured_image.help_text }}</small>
+                </div>
+            </div>
+            
+            <div class="form-info">
+                <i class="fas fa-info-circle"></i>
+                <p>Votre article sera de nouveau examiné par nos modérateurs avant d'être publié. Nous vous notifierons dès qu'il sera approuvé.</p>
+            </div>
+            
+            <div class="form-actions">
+                <a href="{% url 'blog:user_posts' %}" class="btn-outline">
+                    <i class="fas fa-arrow-left"></i> Annuler
+                </a>
+                <a href="{% url 'blog:post_preview' post.id %}" class="btn-outline" target="_blank">
+                    <i class="fas fa-eye"></i> Prévisualiser
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prévisualisation de l'image
+    const imageInput = document.getElementById('{{ form.featured_image.id_for_label }}');
+    const previewImage = document.getElementById('previewImage');
+    
+    if (imageInput && previewImage) {
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+    
+    // Fermeture des messages d'alerte
+    const closeAlertBtns = document.querySelectorAll('.close-alert');
+    
+    closeAlertBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.alert').remove();
+        });
+    });
+});
+</script>
+
+{% endblock %}

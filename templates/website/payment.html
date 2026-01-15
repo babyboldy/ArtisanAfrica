@@ -2,7 +2,7 @@
 {% extends 'base/website/base.html' %}
 {% load static %}
 
-{% block title %}E-Shop - Paiement sécurisé{% endblock %}
+{% block title %}N'Sapka - Paiement sécurisé{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/website/payment.css' %}">
@@ -154,8 +154,8 @@
                         <!-- Formulaire carte bancaire -->
                         <div id="card-payment-form" class="payment-details">
                             <div class="form-grid">
-                                <h3>Cette fonctinnaliter n'est pas disponible pour le moment</h3>
-                                <!-- <div class="form-group full-width">
+                                {% comment %} <h3>Cette fonctinnaliter n'est pas disponible pour le moment</h3> {% endcomment %}
+                                 <div class="form-group full-width">
                                     <label for="card_holder">Titulaire de la carte *</label>
                                     <input type="text" id="card_holder" name="card_holder" placeholder="Nom tel qu'il apparaît sur la carte" required>
                                 </div>
@@ -180,7 +180,7 @@
                                         <input type="text" id="card_cvv" name="card_cvv" placeholder="123" maxlength="3" required>
                                         <i class="fas fa-question-circle tooltip-trigger" data-tooltip="Le code à 3 chiffres au dos de votre carte"></i>
                                     </div>
-                                </div> -->
+                                </div> 
                             </div>
                         </div>
 

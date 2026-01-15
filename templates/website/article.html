@@ -1,0 +1,274 @@
+{% extends 'base/website/base.html' %}
+{% load static %}
+{% block title %}Mes articles - N'Sapka{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/website/profile.css' %}">
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>Mes articles de blog</h1>
+        <p>Gérez vos articles et proposez du contenu pour notre blog</p>
+    </div>
+    
+    <!-- Messages d'alerte -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+            {{ message }}
+            <button type="button" class="close-alert">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="blog-posts-container">
+        <!-- Bouton pour créer un nouvel article -->
+        <div class="blog-actions">
+            <a href="{% url 'blog:create_post' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> Créer un nouvel article
+            </a>
+        </div>
+
+        {% if posts %}
+            <div class="blog-posts-list">
+                {% for post in posts %}
+                <div class="blog-post-item">
+                    <div class="post-image">
+                        {% if post.featured_image %}
+                        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                        {% else %}
+                        <div class="no-image"><i class="fas fa-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="post-details">
+                        <h3>{{ post.title }}</h3>
+                        <p class="post-excerpt">{{ post.excerpt|truncatechars:150 }}</p>
+                        <div class="post-meta">
+                            <span class="post-date">
+                                <i class="far fa-calendar-alt"></i>
+                                Créé le {{ post.created_at|date:"d M Y" }}
+                            </span>
+                            <span class="post-status post-status-{{ post.status }}">
+                                {% if post.status == 'published' %}
+                                    <i class="fas fa-check-circle"></i> Publié
+                                {% elif post.status == 'draft' %}
+                                    <i class="fas fa-clock"></i> En attente de validation
+                                {% else %}
+                                    <i class="fas fa-archive"></i> Archivé
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="post-actions">
+                        {% if post.status == 'published' %}
+                            <a href="{% url 'blog:post_detail' post.slug %}" class="btn-view">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <a href="{% url 'blog:post_preview' post.id %}" class="btn-view">
+                                <i class="fas fa-eye"></i> Prévisualiser
+                            </a>
+                            <a href="{% url 'blog:edit_post' post.id %}" class="btn-edit">
+                                <i class="fas fa-edit"></i> Modifier
+                            </a>
+                            <a href="{% url 'blog:delete_post' post.id %}" class="btn-delete">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-newspaper"></i>
+                <h3>Aucun article</h3>
+                <p>Vous n'avez pas encore créé d'articles. Partagez votre expertise et vos connaissances en créant votre premier article !</p>
+                <a href="{% url 'blog:create_post' %}" class="btn-primary">
+                    <i class="fas fa-plus"></i> Créer mon premier article
+                </a>
+            </div>
+        {% endif %}
+        
+        <div class="blog-guide">
+            <h3>Guide de création d'articles</h3>
+            <div class="guide-content">
+                <div class="guide-item">
+                    <div class="guide-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="guide-text">
+                        <h4>Choisissez un sujet pertinent</h4>
+                        <p>Concentrez-vous sur l'artisanat africain, les techniques traditionnelles, les tendances actuelles ou partagez votre expertise.</p>
+                    </div>
+                </div>
+                
+                <div class="guide-item">
+                    <div class="guide-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="guide-text">
+                        <h4>Utilisez des images de qualité</h4>
+                        <p>Des photos claires et attrayantes amélioreront l'impact de votre article et attireront plus de lecteurs.</p>
+                    </div>
+                </div>
+                
+                <div class="guide-item">
+                    <div class="guide-icon">
+                        <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    <div class="guide-text">
+                        <h4>Structurez votre contenu</h4>
+                        <p>Utilisez des titres, des sous-titres et des paragraphes courts pour rendre votre article facile à lire.</p>
+                    </div>
+                </div>
+                
+                <div class="guide-item">
+                    <div class="guide-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="guide-text">
+                        <h4>Respectez les directives</h4>
+                        <p>Assurez-vous que votre contenu respecte nos directives communautaires pour une validation rapide.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    position: relative;
+    display: inline-block;
+}
+
+.page-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    border-radius: 3px;
+}
+
+.page-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-top: var(--spacing-md);
+}
+
+.blog-guide {
+    margin-top: 3rem;
+    background-color: var(--bg-light);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    border: 1px solid var(--border-light);
+}
+
+.blog-guide h3 {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.blog-guide h3::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    border-radius: 3px;
+}
+
+.guide-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+}
+
+.guide-item {
+    display: flex;
+    gap: var(--spacing-md);
+    background-color: var(--bg-white);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-light);
+}
+
+.guide-item:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+.guide-icon {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.guide-text h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.guide-text p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .guide-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fermeture des messages d'alerte
+    const closeAlertBtns = document.querySelectorAll('.close-alert');
+    
+    closeAlertBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.closest('.alert').remove();
+        });
+    });
+});
+</script>
+
+{% endblock %}

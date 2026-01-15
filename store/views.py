@@ -6,6 +6,9 @@ import os
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import gettext_lazy as _
 from accounts.models import User, UserAddress
+from blog.models import BlogPost
+from orders.models import Order, OrderItem
+
 
 
 
@@ -34,6 +37,20 @@ def home_page(request):
 @login_required
 def client_profile(request):
     user = request.user
+    user_blog_posts = BlogPost.objects.filter(author=user).order_by('-created_at')
+    
+    # Récupération des détails d'une commande spécifique si l'ID est fourni
+    order_detail = None
+    order_id = request.GET.get('order_id')
+    
+    if order_id:
+        try:
+            order_detail = get_object_or_404(Order, id=order_id, user=user)
+            # Récupérer les articles de la commande
+            order_detail.items = OrderItem.objects.filter(order=order_detail)
+        except:
+            # En cas d'erreur, on ignore simplement et n'affiche pas de détails
+            pass
     
     # Traitement des formulaires
     if request.method == 'POST':
@@ -111,8 +128,10 @@ def client_profile(request):
         'user': user,
         'user_addresses': user_addresses,
         'orders': orders,
+        'order_detail': order_detail,  # Ajout des détails de la commande sélectionnée
         'gender_choices': User.GENDER_CHOICES,
         'address_types': UserAddress.ADDRESS_TYPES,
+        'user_blog_posts': user_blog_posts,
     }
     
     return render(request, 'website/profile.html', context)

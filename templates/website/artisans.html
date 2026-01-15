@@ -1,0 +1,660 @@
+{% extends 'base/website/base.html' %}
+{% load static %}
+
+{% block title %}Artisans | N'Sapka{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/website/artisans.css' %}">
+
+<!-- Hero Section -->
+<section class="artisans-hero">
+    <div class="container">
+        <h1>Découvrez Nos Artisans</h1>
+        <p>Rencontrez les créateurs talentueux qui préservent et innovent l'artisanat africain authentique</p>
+    </div>
+</section>
+
+<!-- Section d'introduction -->
+<section class="artisans-intro">
+    <div class="container">
+        <div class="intro-content">
+            <h2>L'excellence artisanale africaine</h2>
+            <p>Chez N'Sapka, nous collaborons avec des artisans exceptionnels qui représentent l'excellence et l'authenticité de l'artisanat africain. Chaque créateur apporte un savoir-faire ancestral, des techniques transmises de génération en génération, et une vision unique.</p>
+            <p>Nos artisans travaillent avec passion pour créer des pièces uniques qui racontent une histoire, préservent un patrimoine culturel, et révèlent la richesse des traditions africaines.</p>
+            
+            <div class="intro-cta">
+                <a href="#artisans-list" class="btn-primary">Découvrir les artisans</a>
+                <a href="#application-form" class="btn-secondary">Devenir artisan</a>
+            </div>
+        </div>
+        
+        <div class="intro-image">
+            <img src="{% static 'img/website/dushawn-jovic-lrFElEb4vFI-unsplash.jpg' %}" alt="Artisan au travail" class="rounded-image">
+        </div>
+    </div>
+</section>
+
+<!-- Liste des artisans -->
+<section id="artisans-list" class="artisans-list">
+    <div class="container">
+        <h2>Nos Artisans Partenaires</h2>
+        
+        <!-- Filtres -->
+        <form method="get" action="." class="filters">
+            <div class="filter-group">
+                <label for="craft_type">Type d'artisanat</label>
+                <select name="craft" id="craft_type">
+                    <option value="all">Tous les types</option>
+                    {% for craft in craft_types %}
+                    <option value="{{ craft.slug }}" {% if craft_filter == craft.slug %}selected{% endif %}>{{ craft.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="region">Région</label>
+                <select name="region" id="region">
+                    <option value="all">Toutes les régions</option>
+                    {% for region in regions %}
+                    <option value="{{ region.slug }}" {% if region_filter == region.slug %}selected{% endif %}>{{ region.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="search-group">
+                <input type="text" name="search" placeholder="Rechercher un artisan..." value="{{ search_query }}">
+                <button type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+        
+        <!-- Grille d'artisans -->
+        <div class="artisans-grid">
+            {% for artisan in artisans %}
+            <div class="artisan-card">
+                <div class="artisan-image">
+                    <img src="{% if artisan.image %}{{ artisan.image.url }}{% else %}{% static 'img/website/placeholder-artisan.jpg' %}{% endif %}" alt="{{ artisan.name }}">
+                    {% if artisan.craft_type %}
+                    <div class="craft-tag">{{ artisan.craft_type.name }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="artisan-info">
+                    <h3>{{ artisan.name }}</h3>
+                    
+                    <div class="artisan-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ artisan.region.name|default:artisan.country }}
+                    </div>
+                    
+                    <p class="artisan-description">{{ artisan.description|truncatechars:120 }}</p>
+                    
+                    <div class="artisan-footer">
+                        <a href="{% url 'artisan_detail' artisan.id %}" class="btn-view-profile">
+                            <i class="fas fa-user"></i>
+                            Voir le profil
+                        </a>
+                        
+                        <div class="artisan-rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter0 < artisan.rating|floatformat:0 %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span>({{ artisan.rating }})</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>Aucun artisan ne correspond à vos critères de recherche. Veuillez essayer d'autres filtres ou revenir plus tard.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if artisans.has_other_pages %}
+        <div class="pagination">
+            {% if artisans.has_previous %}
+            <a href="?page={{ artisans.previous_page_number }}{% if craft_filter != 'all' %}&craft={{ craft_filter }}{% endif %}{% if region_filter != 'all' %}&region={{ region_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-nav">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for num in artisans.paginator.page_range %}
+                {% if artisans.number == num %}
+                    <a href="#" class="page-btn active">{{ num }}</a>
+                {% elif num > artisans.number|add:'-3' and num < artisans.number|add:'3' %}
+                    <a href="?page={{ num }}{% if craft_filter != 'all' %}&craft={{ craft_filter }}{% endif %}{% if region_filter != 'all' %}&region={{ region_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if artisans.has_next %}
+            <a href="?page={{ artisans.next_page_number }}{% if craft_filter != 'all' %}&craft={{ craft_filter }}{% endif %}{% if region_filter != 'all' %}&region={{ region_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-nav">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Témoignages d'artisans -->
+<section class="artisans-testimonials">
+    <div class="container">
+        <h2>Ce que disent nos artisans</h2>
+        
+        <div class="testimonials-slider">
+            {% for testimonial in testimonials %}
+            <div class="testimonial-slide {% if forloop.first %}active{% endif %}">
+                <div class="testimonial-content">
+                    <div class="testimonial-image">
+                        <img src="{% if testimonial.image %}{{ testimonial.image.url }}{% else %}{% static 'img/website/back_2.jpg' %}{% endif %}" alt="{{ testimonial.name }}">
+                    </div>
+                    <div class="testimonial-text">
+                        <p>{{ testimonial.content }}</p>
+                        <div class="testimonial-author">
+                            <h4>{{ testimonial.name }}</h4>
+                            <p>{{ testimonial.title }}{% if testimonial.location %}, {{ testimonial.location }}{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="testimonial-slide active">
+                <div class="testimonial-content">
+                    <div class="testimonial-image">
+                        <img src="{% static 'img/website/back.jpeg' %}" alt="Ibrahim Touré">
+                    </div>
+                    <div class="testimonial-text">
+                        <p>Grâce à N'Sapka, mes créations sont maintenant appréciées par des clients du monde entier. Cette plateforme a changé ma vie et celle de ma famille.</p>
+                        <div class="testimonial-author">
+                            <h4>Ibrahim Touré</h4>
+                            <p>Sculpteur sur bois, Mali</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-slide">
+                <div class="testimonial-content">
+                    <div class="testimonial-image">
+                        <img src="{% static 'img/website/testimonial-2.jpg' %}" alt="Fatou Ndour">
+                    </div>
+                    <div class="testimonial-text">
+                        <p>En tant que femme tisserande, j'ai pu développer mon atelier et former d'autres femmes de mon village. N'Sapka nous donne une visibilité que nous n'aurions jamais eue.</p>
+                        <div class="testimonial-author">
+                            <h4>Fatou Ndour</h4>
+                            <p>Tisserande, Sénégal</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="testimonial-controls">
+            <button class="testimonial-prev">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <div class="testimonial-dots">
+                {% for testimonial in testimonials %}
+                <span class="dot {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter0 }}"></span>
+                {% empty %}
+                <span class="dot active" data-slide="0"></span>
+                <span class="dot" data-slide="1"></span>
+                {% endfor %}
+            </div>
+            
+            <button class="testimonial-next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Devenir artisan -->
+<section id="application-form" class="become-artisan">
+    <div class="container">
+        <div class="become-artisan-content">
+            <h2>Rejoignez notre communauté d'artisans</h2>
+            <p>Vous êtes un artisan talentueux ? Rejoignez notre plateforme et bénéficiez d'une visibilité internationale pour vos créations.</p>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3>Visibilité mondiale</h3>
+                    <p>Vos créations seront exposées sur une plateforme visitée par des clients du monde entier.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3>Revenus équitables</h3>
+                    <p>Recevez une rémunération juste pour votre travail et votre talent.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3>Photos professionnelles</h3>
+                    <p>Nous vous aidons à mettre en valeur vos créations avec des photos de qualité.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <h3>Logistique simplifiée</h3>
+                    <p>Nous gérons l'expédition, vous vous concentrez sur votre art.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="application-form">
+            <h2>Postulez dès maintenant</h2>
+            
+            <form method="post" action="{% url 'artisans:artisan_application' %}" enctype="multipart/form-data" id="artisan-application-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="full_name">Votre nom complet</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                    <span class="error" id="error-full_name"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <span class="error" id="error-email"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Téléphone</label>
+                    <input type="tel" id="phone" name="phone" required>
+                    <span class="error" id="error-phone"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="country">Pays</label>
+                    <select id="country" name="country" required>
+                        <option value="">Sélectionnez votre pays</option>
+                        <option value="Bénin">Bénin</option>
+                        <option value="Burkina Faso">Burkina Faso</option>
+                        <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+                        <option value="Ghana">Ghana</option>
+                        <option value="Mali">Mali</option>
+                        <option value="Nigeria">Nigeria</option>
+                        <option value="Sénégal">Sénégal</option>
+                        <!-- Autres pays africains... -->
+                    </select>
+                    <span class="error" id="error-country"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="craft_type">Type d'artisanat</label>
+                    <select id="craft_type" name="craft_type" required>
+                        <option value="">Sélectionnez votre spécialité</option>
+                        {% for craft in craft_types %}
+                        <option value="{{ craft.id }}">{{ craft.name }}</option>
+                        {% endfor %}
+                        <option value="Autre">Autre (préciser)</option>
+                    </select>
+                    <span class="error" id="error-craft_type"></span>
+                </div>
+                
+                <div class="form-group" id="other-craft-group" style="display: none;">
+                    <label for="other_craft">Précisez votre type d'artisanat</label>
+                    <input type="text" id="other_craft" name="other_craft">
+                    <span class="error" id="error-other_craft"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="experience">Années d'expérience</label>
+                    <select id="experience" name="experience" required>
+                        <option value="">Sélectionnez votre expérience</option>
+                        <option value="1-3">1-3 ans</option>
+                        <option value="4-6">4-6 ans</option>
+                        <option value="7-10">7-10 ans</option>
+                        <option value="10+">Plus de 10 ans</option>
+                    </select>
+                    <span class="error" id="error-experience"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Décrivez votre travail et vos créations</label>
+                    <textarea id="description" name="description" rows="5" required></textarea>
+                    <span class="error" id="error-description"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="portfolio_url">Site web ou portfolio (optionnel)</label>
+                    <input type="url" id="portfolio_url" name="portfolio_url" placeholder="https://...">
+                </div>
+                
+                <div class="file-upload">
+                    <label>Photos de vos créations</label>
+                    <div class="file-input-container">
+                        <input type="file" id="photos" name="photos" multiple accept="image/*" required>
+                        <div class="file-label">
+                            <i class="fas fa-upload"></i>
+                            <span>Cliquez pour ajouter des photos</span>
+                        </div>
+                    </div>
+                    <div class="file-preview" id="image-preview"></div>
+                    <p class="file-help">Ajoutez 1 à 3 photos de vos meilleures créations (max 5MB par image)</p>
+                    <span class="error" id="error-photos"></span>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms_accepted" name="terms_accepted" required>
+                    <label for="terms_accepted">J'accepte les conditions d'utilisation et la politique de confidentialité</label>
+                    <span class="error" id="error-terms_accepted"></span>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Envoyer ma candidature</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="artisans-faq">
+    <div class="container">
+        <h2>Questions fréquentes</h2>
+        
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <h3>Comment fonctionne le processus de sélection des artisans ?</h3>
+                    <div class="accordion-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <div class="accordion-content">
+                    <p>Notre processus de sélection comprend plusieurs étapes : examen de votre candidature et de vos photos, vérification de l'authenticité de votre travail, évaluation de la qualité et de l'originalité de vos créations, puis entretien personnel. Nous cherchons des artisans talentueux qui préservent les techniques traditionnelles tout en apportant leur touche personnelle.</p>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <h3>Quels sont les avantages de rejoindre N'Sapka ?</h3>
+                    <div class="accordion-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <div class="accordion-content">
+                    <p>En rejoignant notre plateforme, vous bénéficiez d'une visibilité internationale, d'une rémunération équitable, d'un accompagnement pour la mise en valeur de vos créations (photos professionnelles, descriptions attractives), d'une gestion de la logistique et d'un accès à une communauté d'artisans partageant les mêmes valeurs.</p>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <h3>Comment sont fixés les prix des créations ?</h3>
+                    <div class="accordion-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <div class="accordion-content">
+                    <p>Les prix sont fixés en collaboration avec vous, en tenant compte de plusieurs facteurs : la qualité et la complexité de votre travail, le temps nécessaire à la création, la valeur des matériaux utilisés, et les prix du marché. Notre objectif est de garantir une rémunération juste qui valorise votre savoir-faire tout en proposant des prix accessibles aux clients.</p>
+                </div>
+            </div>
+            
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <h3>Comment sont gérées les expéditions internationales ?</h3>
+                    <div class="accordion-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <div class="accordion-content">
+                    <p>N'Sapka se charge de toute la logistique d'expédition. Une fois qu'une commande est passée, nous organisons la collecte de vos créations, l'emballage sécurisé et l'expédition internationale. Vous n'avez qu'à vous concentrer sur votre art, nous nous occupons du reste.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Notification pour les messages de succès/erreur -->
+<div id="notification" class="notification" style="display: none;">
+    <i class="fas fa-check-circle"></i>
+    <span id="notification-message"></span>
+    <button class="close-notification" onclick="hideNotification()">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Accordion functionality
+        const accordionItems = document.querySelectorAll('.accordion-item');
+        
+        accordionItems.forEach(item => {
+            const header = item.querySelector('.accordion-header');
+            
+            header.addEventListener('click', () => {
+                // Close all other items
+                accordionItems.forEach(otherItem => {
+                    if (otherItem !== item && otherItem.classList.contains('active')) {
+                        otherItem.classList.remove('active');
+                    }
+                });
+                
+                // Toggle current item
+                item.classList.toggle('active');
+            });
+        });
+        
+        // Testimonial slider
+        const slides = document.querySelectorAll('.testimonial-slide');
+        const dots = document.querySelectorAll('.dot');
+        const prevBtn = document.querySelector('.testimonial-prev');
+        const nextBtn = document.querySelector('.testimonial-next');
+        let currentSlide = 0;
+        
+        function showSlide(n) {
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            dots.forEach(dot => {
+                dot.classList.remove('active');
+            });
+            
+            slides[n].classList.add('active');
+            dots[n].classList.add('active');
+            currentSlide = n;
+        }
+        
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+        
+        // Event listeners
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+        
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                showSlide(index);
+            });
+        });
+        
+        // Auto slide every 5 seconds
+        setInterval(nextSlide, 5000);
+        
+        // Afficher/masquer le champ "autre artisanat"
+        const craftTypeSelect = document.getElementById('craft_type');
+        const otherCraftGroup = document.getElementById('other-craft-group');
+        
+        if (craftTypeSelect && otherCraftGroup) {
+            craftTypeSelect.addEventListener('change', function() {
+                if (this.value === 'Autre') {
+                    otherCraftGroup.style.display = 'block';
+                } else {
+                    otherCraftGroup.style.display = 'none';
+                }
+            });
+        }
+        
+        // File upload preview
+        const fileInput = document.getElementById('photos');
+        const previewContainer = document.getElementById('image-preview');
+        
+        if (fileInput && previewContainer) {
+            fileInput.addEventListener('change', function() {
+                previewContainer.innerHTML = '';
+                
+                for (let i = 0; i < this.files.length; i++) {
+                    if (i >= 3) break; // Maximum 3 previews
+                    
+                    const file = this.files[i];
+                    if (!file.type.startsWith('image/')) continue;
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'file-preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = file.name;
+                        
+                        const removeBtn = document.createElement('span');
+                        removeBtn.className = 'file-preview-remove';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.addEventListener('click', function() {
+                            previewItem.remove();
+                        });
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        previewContainer.appendChild(previewItem);
+                    }
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Gestion du formulaire
+        const applicationForm = document.getElementById('artisan-application-form');
+        
+        if (applicationForm) {
+            applicationForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Réinitialiser les messages d'erreur
+                document.querySelectorAll('.error').forEach(el => {
+                    el.textContent = '';
+                });
+                
+                // Récupérer les données du formulaire
+                const formData = new FormData(this);
+                
+                // Envoyer la demande au serveur
+                fetch('{% url "artisans:artisan_application" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Réinitialiser le formulaire
+                        applicationForm.reset();
+                        previewContainer.innerHTML = '';
+                        
+                        // Afficher le message de succès
+                        showNotification(data.message, 'success');
+                        
+                        // Faire défiler vers le haut
+                        window.scrollTo({
+                            top: applicationForm.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        // Afficher les erreurs
+                        const errors = data.errors;
+                        for (const field in errors) {
+                            const errorElement = document.getElementById(`error-${field}`);
+                            if (errorElement) {
+                                errorElement.textContent = errors[field];
+                            }
+                        }
+                        
+                        // Afficher un message d'erreur général
+                        showNotification('Veuillez corriger les erreurs dans le formulaire.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Une erreur est survenue. Veuillez réessayer.', 'error');
+                });
+            });
+        }
+        
+        // Fade-in effect on scroll
+        const fadeElements = document.querySelectorAll('.benefit-card, .artisan-card, .accordion-item');
+        fadeElements.forEach(element => {
+            element.classList.add('fade-in');
+        });
+        
+        function checkScroll() {
+            fadeElements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const screenPosition = window.innerHeight / 1.3;
+                
+                if (elementPosition < screenPosition) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+        
+        // Check elements on load
+        checkScroll();
+        
+        // Check elements on scroll
+        window.addEventListener('scroll', checkScroll);
+    });
+    
+    // Fonctions pour les notifications
+    function showNotification(message, type) {
+        const notification = document.getElementById('notification');
+        const messageElement = document.getElementById('notification-message');
+        
+        messageElement.textContent = message;
+        notification.className = 'notification ' + type;
+        notification.style.display = 'flex';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(hideNotification, 5000);
+    }
+    
+    function hideNotification() {
+        const notification = document.getElementById('notification');
+        notification.style.display = 'none';
+    }
+</script>
+{% endblock %}

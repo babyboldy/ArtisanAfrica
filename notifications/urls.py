@@ -1,7 +1,12 @@
 # notifications/urls.py
-from django.urls import path
+from django.urls import path, include
 from . import views
+from rest_framework.routers import DefaultRouter
+from .viewsets import NotificationViewSet, NotificationGroupViewSet
 
+router = DefaultRouter()
+router.register(r'notifications', NotificationViewSet, basename='notifications')
+router.register(r'groups', NotificationGroupViewSet, basename='groups')
 
 urlpatterns = [
     path('notifications/', views.admin_notifications, name='admin_notifications'),
@@ -12,4 +17,5 @@ urlpatterns = [
     path('clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('archive/<int:notification_id>/', views.archive_notification, name='archive_notification'),
     path('detail/<int:notification_id>/', views.notification_detail, name='notification_detail'),
+    path('', include(router.urls)),
 ]
